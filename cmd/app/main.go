@@ -1,12 +1,12 @@
 package main
 
 import (
-	"context"
 	"fmt"
 	"net/http"
 	"time"
 
 	"github.com/dmitrymomot/go-server/pkg/httpserver"
+	"github.com/dmitrymomot/go-utils"
 	"github.com/sirupsen/logrus"
 )
 
@@ -17,7 +17,7 @@ func main() {
 	defer func() { logger.Info("Server successfully shutdown") }()
 
 	// Create a context with a timeout and set the Server's context
-	ctx, cancel := context.WithCancel(context.Background())
+	ctx, cancel := utils.NewContextWithCancel(logger)
 	defer cancel()
 
 	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) { fmt.Fprintln(w, "Hello, World!") })
@@ -30,4 +30,9 @@ func main() {
 	if err := server.Run(ctx); err != nil {
 		logger.Errorf("Server returned an error: %v", err)
 	}
+
+	// Wait for the server to shutdown
+	logger.Info("Waiting for server shutdown")
+	<-ctx.Done()
+	logger.Info("Server shutdown")
 }
