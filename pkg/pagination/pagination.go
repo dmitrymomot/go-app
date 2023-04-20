@@ -45,12 +45,28 @@ func Parse(r *http.Request) *Pagination {
 	return p
 }
 
+// GetLimit returns limit of pagination
+func (p *Pagination) GetLimit() int {
+	if p.Limit > 0 {
+		return p.Limit
+	}
+	return 10
+}
+
 // GetOffset returns offset of pagination
 func (p *Pagination) GetOffset() int {
 	if p.Offset > 0 {
 		return p.Offset
 	}
 	return (p.Page - 1) * p.Limit
+}
+
+// GetPage returns current page
+func (p *Pagination) GetPage() int {
+	if p.Page > 0 {
+		return p.Page
+	}
+	return (p.Offset / p.Limit) + 1
 }
 
 // GetPages returns total count of pages
