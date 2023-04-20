@@ -1,0 +1,24 @@
+version: "3"
+
+services:
+  db:
+    image: postgres:alpine
+    environment:
+      POSTGRES_PASSWORD: pgpass
+      POSTGRES_USER: pguser
+      POSTGRES_DB: pgdb
+    volumes:
+      - database_data:/var/lib/postgresql/data
+    ports:
+      - 5432:5432
+
+  redis:
+    image: redis:alpine
+    ports:
+      - 6379:6379
+    volumes:
+      - redis_data:/data
+
+volumes:
+  database_data:
+  redis_data:
