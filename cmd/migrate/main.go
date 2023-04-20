@@ -3,11 +3,11 @@ package main
 import (
 	"database/sql"
 
-	_ "github.com/lib/pq" // init pg driver
-	"github.com/sirupsen/logrus"
-
 	"github.com/dmitrymomot/go-env"
+	_ "github.com/joho/godotenv/autoload" // Load .env file automatically
+	_ "github.com/lib/pq"                 // init pg driver
 	migrate "github.com/rubenv/sql-migrate"
+	"github.com/sirupsen/logrus"
 )
 
 var (
