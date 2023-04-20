@@ -1,6 +1,7 @@
 package httpserver_test
 
 import (
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -37,4 +38,31 @@ func TestFileServer(t *testing.T) {
 	// check that the response body contains the expected content
 	expectedBody := "This is a test file."
 	require.Contains(t, rr.Body.String(), expectedBody)
+}
+
+func TestFileServerMiddleware(t *testing.T) {
+	dir := "testdata"
+	prefix := "/static/"
+
+	// Create a test server with the middleware and a handler that always returns 200 OK
+	ts := httptest.NewServer(httpserver.FileServerMiddleware(dir, prefix)(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	})))
+	defer ts.Close()
+
+	// Test requests for files in the directory with the prefix
+	res, err := http.Get(ts.URL + "/static/file.html")
+	require.NoError(t, err)
+	defer res.Body.Close()
+	require.Equal(t, http.StatusOK, res.StatusCode)
+
+	// check that the Content-Type header is set correctly
+	expectedContentType := "text/html; charset=utf-8"
+	require.Equal(t, expectedContentType, res.Header.Get("Content-Type"))
+
+	// check that the response body contains the expected content
+	expectedBody := "This is a test file."
+	respBody, err := io.ReadAll(res.Body)
+	require.NoError(t, err)
+	require.Contains(t, string(respBody), expectedBody)
 }
