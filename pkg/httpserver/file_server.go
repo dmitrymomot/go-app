@@ -16,6 +16,7 @@ func FileServer(dir, prefix string) http.HandlerFunc {
 			return
 		}
 		http.NotFound(w, r)
+		return
 	}
 }
 
