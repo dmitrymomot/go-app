@@ -1,6 +1,23 @@
 package response
 
+import "net/http"
+
 type (
+	// Response interface
+	Responser interface {
+		// GetCode returns HTTP code of response
+		GetCode() int
+		// GetPayload returns payload of response
+		GetPayload() interface{}
+	}
+
+	// Responder is an interface for response.
+	// Respond writes response to http.ResponseWriter.
+	Responder interface {
+		// JSON writes JSON response to http.ResponseWriter.
+		JSON(w http.ResponseWriter, response Responser) error
+	}
+
 	// Response is a struct for response
 	Response struct {
 		// Code is a code of response
@@ -57,3 +74,23 @@ type (
 		Version string `json:"version" example:"1.0.0"`
 	}
 )
+
+// GetCode returns HTTP code of response
+func (r *Response) GetCode() int {
+	return r.Code
+}
+
+// GetPayload returns payload of response
+func (r *Response) GetPayload() interface{} {
+	return r
+}
+
+// GetCode returns HTTP code of response
+func (e *Error) GetCode() int {
+	return e.Code
+}
+
+// GetPayload returns payload of response
+func (e *Error) GetPayload() interface{} {
+	return e
+}
