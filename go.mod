@@ -4,7 +4,7 @@ go 1.19
 
 require (
 	github.com/dmitrymomot/binder v0.1.0
-	github.com/dmitrymomot/go-utils v0.1.2
+	github.com/dmitrymomot/go-utils v0.1.3
 	github.com/sirupsen/logrus v1.9.0
 	github.com/stretchr/testify v1.8.2
 	golang.org/x/sync v0.1.0
