@@ -9,6 +9,8 @@ type (
 		Message string `json:"message" example:"OK"`
 		// Data is a data of response
 		Data interface{} `json:"data" example:"{}"`
+		// Meta is a meta of response
+		Meta *Meta `json:"meta,omitempty"`
 	}
 
 	// Error is a struct for error response
@@ -43,5 +45,15 @@ type (
 		Page int `json:"page"`
 		// Pages is a total count of pages
 		Pages int `json:"pages"`
+	}
+
+	// Meta represents a meta of response
+	Meta struct {
+		// Title is a title of response
+		Title string `json:"title" example:"Title"`
+		// Description is a description of response
+		Description string `json:"description" example:"Description"`
+		// Version is a version of response
+		Version string `json:"version" example:"1.0.0"`
 	}
 )
