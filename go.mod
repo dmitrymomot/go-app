@@ -6,8 +6,7 @@ require (
 	github.com/dmitrymomot/binder v0.1.0
 	github.com/dmitrymomot/go-env v1.0.2
 	github.com/dmitrymomot/go-utils v0.1.3
-	github.com/fatih/color v1.13.0
-	github.com/go-chi/chi v1.5.4
+	github.com/fatih/color v1.15.0
 	github.com/go-chi/chi/v5 v5.0.8
 	github.com/go-chi/cors v1.2.1
 	github.com/joho/godotenv v1.5.1
@@ -22,7 +21,6 @@ require (
 require (
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/gabriel-vasile/mimetype v1.4.2 // indirect
-	github.com/go-chi/httplog v0.3.0 // indirect
 	github.com/go-gorp/gorp/v3 v3.1.0 // indirect
 	github.com/gorilla/schema v1.2.0 // indirect
 	github.com/labstack/gommon v0.4.0 // indirect
@@ -32,7 +30,6 @@ require (
 	github.com/mr-tron/base58 v1.2.0 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
-	github.com/rs/zerolog v1.29.1 // indirect
 	golang.org/x/net v0.9.0 // indirect
 	golang.org/x/sys v0.7.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
