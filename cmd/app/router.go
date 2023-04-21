@@ -46,5 +46,9 @@ func initRouter() *chi.Mux {
 	r.HandleFunc("/health", httpserver.HealthCheckHandler())
 	r.Handle("/static/*", httpserver.FileServer("./public", "/static/"))
 
+	if appDebug {
+		r.Mount("/debug", middleware.Profiler())
+	}
+
 	return r
 }
