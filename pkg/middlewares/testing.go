@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/dmitrymomot/go-server/pkg/response"
+	"github.com/dmitrymomot/go-app/pkg/response"
 	"github.com/dmitrymomot/go-utils"
 )
 

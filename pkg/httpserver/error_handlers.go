@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/dmitrymomot/go-server/pkg/response"
+	"github.com/dmitrymomot/go-app/pkg/response"
 )
 
 // NotFoundHandler is a handler for 404 Not Found

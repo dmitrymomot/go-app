@@ -1,8 +1,8 @@
 package main
 
 import (
-	"github.com/dmitrymomot/go-server/pkg/httpserver"
-	"github.com/dmitrymomot/go-server/pkg/middlewares"
+	"github.com/dmitrymomot/go-app/pkg/httpserver"
+	"github.com/dmitrymomot/go-app/pkg/middlewares"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/cors"

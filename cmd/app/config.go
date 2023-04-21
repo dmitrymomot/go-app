@@ -9,7 +9,7 @@ import (
 
 // Application glabal variables
 var (
-	appName     = env.GetString("APP_NAME", "go-server")
+	appName     = env.GetString("APP_NAME", "go-app")
 	appDebug    = env.GetBool("APP_DEBUG", false)
 	appLogLevel = env.GetString("APP_LOG_LEVEL", "info")
 	buildTag    = env.GetString("COMMIT_HASH", "undefined")

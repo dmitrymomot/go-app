@@ -1,4 +1,4 @@
-module github.com/dmitrymomot/go-server
+module github.com/dmitrymomot/go-app
 
 go 1.19
 

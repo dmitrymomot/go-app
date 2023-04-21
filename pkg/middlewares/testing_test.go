@@ -6,7 +6,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/dmitrymomot/go-server/pkg/middlewares"
+	"github.com/dmitrymomot/go-app/pkg/middlewares"
 )
 
 func TestTestingMiddleware(t *testing.T) {

@@ -4,7 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 
-	"github.com/dmitrymomot/go-server/pkg/httpserver"
+	"github.com/dmitrymomot/go-app/pkg/httpserver"
 	"github.com/dmitrymomot/go-utils"
 	"github.com/sirupsen/logrus"
 	"golang.org/x/sync/errgroup"

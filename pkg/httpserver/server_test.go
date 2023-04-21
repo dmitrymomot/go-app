@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/dmitrymomot/go-server/pkg/httpserver"
+	"github.com/dmitrymomot/go-app/pkg/httpserver"
 	"github.com/stretchr/testify/assert"
 )
 
