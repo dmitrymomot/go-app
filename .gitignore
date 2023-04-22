@@ -15,3 +15,5 @@
 # vendor/
 tests/
 .env
+node_modules/
+.vscode/
