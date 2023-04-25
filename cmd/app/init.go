@@ -11,7 +11,11 @@ import (
 
 func init() {
 	// SetLevel sets the global log level used by the standard logger.
-	logrus.SetLevel(getLogrusLogLevel(appLogLevel))
+	lvl, err := logrus.ParseLevel(appLogLevel)
+	if err != nil {
+		lvl = logrus.InfoLevel
+	}
+	logrus.SetLevel(lvl)
 
 	// SetReportCaller sets whether the standard logger will include the calling
 	// method as a field.
@@ -37,24 +41,4 @@ func init() {
 	gob.Register(map[string]interface{}{})
 	gob.Register(map[string][]interface{}{})
 	gob.Register(map[interface{}]interface{}{})
-}
-
-// getLogrusLogLevel returns logrus log level by string.
-func getLogrusLogLevel(level string) logrus.Level {
-	switch level {
-	case "debug":
-		return logrus.DebugLevel
-	case "info":
-		return logrus.InfoLevel
-	case "warn":
-		return logrus.WarnLevel
-	case "error":
-		return logrus.ErrorLevel
-	case "fatal":
-		return logrus.FatalLevel
-	case "panic":
-		return logrus.PanicLevel
-	default:
-		return logrus.InfoLevel
-	}
 }
