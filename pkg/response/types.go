@@ -15,7 +15,9 @@ type (
 	// Respond writes response to http.ResponseWriter.
 	Responder interface {
 		// JSON writes JSON response to http.ResponseWriter.
-		JSON(w http.ResponseWriter, response Responser) error
+		// headersKV is a list of headers key-value pairs.
+		// E.g. "Content-Type", "application/json", "X-Request-ID", "123"
+		JSON(w http.ResponseWriter, response Responser, headersKV ...string) error
 	}
 
 	// Response is a struct for response

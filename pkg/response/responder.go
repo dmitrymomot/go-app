@@ -28,7 +28,7 @@ func NewResponder() Responder {
 }
 
 // JSON HTTP response
-func (resp *defaultResponder) JSON(w http.ResponseWriter, response Responser) error {
+func (resp *defaultResponder) JSON(w http.ResponseWriter, response Responser, headersKV ...string) error {
 	if response == nil {
 		return fmt.Errorf("response is nil")
 	}
@@ -42,7 +42,13 @@ func (resp *defaultResponder) JSON(w http.ResponseWriter, response Responser) er
 		return nil
 	}
 
+	// set default headers
 	w.Header().Set("Content-Type", "application/json")
+	// set custom headers
+	for i := 0; i < len(headersKV); i += 2 {
+		w.Header().Set(headersKV[i], headersKV[i+1])
+	}
+
 	w.WriteHeader(code)
 	if err := json.NewEncoder(w).Encode(response.GetPayload()); err != nil {
 		return fmt.Errorf("failed to encode response: %w", err)
