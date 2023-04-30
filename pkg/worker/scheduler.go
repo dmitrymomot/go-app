@@ -17,7 +17,7 @@ type (
 
 	// schedulerHandler is an interface for scheduler handlers.
 	schedulerHandler interface {
-		Schedule(*asynq.Scheduler)
+		Schedule(*asynq.Scheduler) error
 	}
 )
 
@@ -57,7 +57,9 @@ func (srv *SchedulerServer) Run(handlers ...schedulerHandler) func() error {
 	return func() error {
 		// Register handlers
 		for _, h := range handlers {
-			h.Schedule(srv.Scheduler)
+			if err := h.Schedule(srv.Scheduler); err != nil {
+				return err
+			}
 		}
 
 		// Run scheduler
