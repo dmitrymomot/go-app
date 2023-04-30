@@ -40,4 +40,9 @@ var (
 	queueName         = env.GetString("QUEUE_NAME", "default")
 	queueTaskDeadline = env.GetDuration("QUEUE_TASK_DEADLINE", time.Minute)
 	queueMaxRetry     = env.GetInt("QUEUE_TASK_RETRY_LIMIT", 3)
+
+	// Static files
+	isStaticFilesEnabled = env.GetBool("STATIC_FILES_ENABLED", false)
+	staticFilesDir       = env.GetString("STATIC_FILES_DIR", "./public")
+	staticFilesPrefix    = env.GetString("STATIC_FILES_PREFIX", "/static/")
 )

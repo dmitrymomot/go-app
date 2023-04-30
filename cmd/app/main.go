@@ -42,6 +42,8 @@ func main() {
 	// Init router with default middlewares and routes
 	r := initRouter()
 
+	// TODO: Add your routes here
+
 	// Create a new server
 	server := httpserver.NewServer(
 		fmt.Sprintf(":%d", httpPort), r,

@@ -1,6 +1,9 @@
 package main
 
 import (
+	"fmt"
+	"strings"
+
 	"github.com/dmitrymomot/go-app/pkg/httpserver"
 	"github.com/dmitrymomot/go-app/pkg/middlewares"
 	"github.com/go-chi/chi/v5"
@@ -42,11 +45,19 @@ func initRouter() *chi.Mux {
 	r.NotFound(httpserver.NotFoundHandler())
 	r.MethodNotAllowed(httpserver.MethodNotAllowedHandler())
 
-	// Default routes
+	// Health check endpoint, returns 204 No Content
 	r.HandleFunc("/health", httpserver.HealthCheckHandler())
-	r.Handle("/static/*", httpserver.FileServer("./public", "/static/"))
+
+	// Static files
+	if isStaticFilesEnabled {
+		r.Handle(
+			fmt.Sprintf("%s/*", strings.TrimSuffix(staticFilesPrefix, "/")),
+			httpserver.FileServer(staticFilesDir, staticFilesPrefix),
+		)
+	}
 
 	if appDebug {
+		// Profiler endpoints, only for debug mode
 		r.Mount("/debug", middleware.Profiler())
 	}
 
