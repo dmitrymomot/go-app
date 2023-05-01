@@ -37,12 +37,13 @@ func Testing() func(next http.Handler) http.Handler {
 
 			// Return error with needed status code
 			if utils.IsJsonRequest(r) {
+				// nolint:errcheck
 				response.JSON(w, response.NewError(
 					errCode,
 					errors.New(http.StatusText(errCode)),
 					http.StatusText(errCode),
 					nil,
-				)) // nolint:errcheck
+				))
 			} else {
 				http.Error(w, http.StatusText(errCode), errCode)
 			}
@@ -58,12 +59,13 @@ func isValidErrorCode(errCode int) bool {
 // Helper function to send an error response
 func sendErrorResponse(w http.ResponseWriter, r *http.Request, statusCode int, err error) {
 	if utils.IsJsonRequest(r) {
+		// nolint:errcheck
 		response.JSON(w, response.NewError(
 			statusCode,
 			err,
 			http.StatusText(statusCode),
 			nil,
-		)) // nolint:errcheck
+		))
 	} else {
 		http.Error(w, err.Error(), statusCode)
 	}
