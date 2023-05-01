@@ -33,13 +33,13 @@ var (
 	dbMaxIdleConns = env.GetInt("DATABASE_IDLE_CONNS", 2)
 
 	// Redis
-	redisConnString = env.GetString("REDIS_URL", "redis://localhost:6379/0")
+	// redisConnString = env.GetString("REDIS_URL", "redis://localhost:6379/0")
 
 	// Queue
-	workerConcurrency = env.GetInt("WORKER_CONCURRENCY", 10)
-	queueName         = env.GetString("QUEUE_NAME", "default")
-	queueTaskDeadline = env.GetDuration("QUEUE_TASK_DEADLINE", time.Minute)
-	queueMaxRetry     = env.GetInt("QUEUE_TASK_RETRY_LIMIT", 3)
+	// workerConcurrency = env.GetInt("WORKER_CONCURRENCY", 10)
+	// queueName         = env.GetString("QUEUE_NAME", "default")
+	// queueTaskDeadline = env.GetDuration("QUEUE_TASK_DEADLINE", time.Minute)
+	// queueMaxRetry     = env.GetInt("QUEUE_TASK_RETRY_LIMIT", 3)
 
 	// Static files
 	isStaticFilesEnabled = env.GetBool("STATIC_FILES_ENABLED", false)

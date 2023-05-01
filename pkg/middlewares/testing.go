@@ -42,7 +42,7 @@ func Testing() func(next http.Handler) http.Handler {
 					errors.New(http.StatusText(errCode)),
 					http.StatusText(errCode),
 					nil,
-				))
+				)) // nolint:errcheck
 			} else {
 				http.Error(w, http.StatusText(errCode), errCode)
 			}
@@ -63,7 +63,7 @@ func sendErrorResponse(w http.ResponseWriter, r *http.Request, statusCode int, e
 			err,
 			http.StatusText(statusCode),
 			nil,
-		))
+		)) // nolint:errcheck
 	} else {
 		http.Error(w, err.Error(), statusCode)
 	}

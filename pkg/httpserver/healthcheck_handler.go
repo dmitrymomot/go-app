@@ -6,6 +6,5 @@ import "net/http"
 func HealthCheckHandler() func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusNoContent)
-		return
 	}
 }

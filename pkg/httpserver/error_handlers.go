@@ -16,8 +16,7 @@ func NotFoundHandler() func(w http.ResponseWriter, r *http.Request) {
 			fmt.Sprintf("The requested URL %s was not found on this server.", r.URL.Path),
 			nil,
 		)
-		response.JSON(w, resp)
-		return
+		response.JSON(w, resp) // nolint:errcheck
 	}
 }
 
@@ -30,7 +29,6 @@ func MethodNotAllowedHandler() func(w http.ResponseWriter, r *http.Request) {
 			fmt.Sprintf("The requested method %s is not allowed for the URL %s.", r.Method, r.URL.Path),
 			nil,
 		)
-		response.JSON(w, resp)
-		return
+		response.JSON(w, resp) // nolint:errcheck
 	}
 }
