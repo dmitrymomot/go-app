@@ -1,4 +1,4 @@
-package main
+package app
 
 import (
 	"context"
@@ -6,8 +6,8 @@ import (
 	"math/rand"
 	"time"
 
-	"github.com/ThreeDotsLabs/watermill"
-	"github.com/ThreeDotsLabs/watermill/components/cqrs"
+	"github.com/dmitrymomot/go-app/pkg/cqrs"
+	"github.com/dmitrymomot/go-app/pkg/uuid"
 )
 
 // BookRoomHandler is a command handler, which handles BookRoom command and emits RoomBooked.
@@ -15,7 +15,16 @@ import (
 // In CQRS, one command must be handled by only one handler.
 // When another handler with this command is added to command processor, error will be retuerned.
 type BookRoomHandler struct {
-	eventBus *cqrs.EventBus
+	eventBus cqrs.EventBus
+}
+
+// NewBookRoomHandler implements cqrs.CommanfHandlerFactory interface.
+func NewBookRoomHandler() cqrs.CommanfHandlerFactory {
+	return func(cb cqrs.CommandBus, eb cqrs.EventBus) cqrs.CommandHandler {
+		return &BookRoomHandler{
+			eventBus: eb,
+		}
+	}
 }
 
 func (b BookRoomHandler) HandlerName() string {
@@ -38,14 +47,14 @@ func (b BookRoomHandler) Handle(ctx context.Context, c interface{}) error {
 		"Booked %s for %s from %s to %s",
 		cmd.RoomId,
 		cmd.GuestName,
-		time.Unix(cmd.StartDate.Seconds, int64(cmd.StartDate.Nanos)),
-		time.Unix(cmd.EndDate.Seconds, int64(cmd.EndDate.Nanos)),
+		cmd.StartDate.Format(time.RFC3339),
+		cmd.EndDate.Format(time.RFC3339),
 	)
 
 	// RoomBooked will be handled by OrderBeerOnRoomBooked event handler,
 	// in future RoomBooked may be handled by multiple event handler
 	if err := b.eventBus.Publish(ctx, &RoomBooked{
-		ReservationId: watermill.NewUUID(),
+		ReservationId: uuid.New().String(),
 		RoomId:        cmd.RoomId,
 		GuestName:     cmd.GuestName,
 		Price:         price,

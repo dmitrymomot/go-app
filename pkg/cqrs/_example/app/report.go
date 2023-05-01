@@ -1,9 +1,11 @@
-package main
+package app
 
 import (
 	"context"
 	fmt "fmt"
 	"sync"
+
+	"github.com/dmitrymomot/go-app/pkg/cqrs"
 )
 
 // BookingsFinancialReport is a read model, which calculates how much money we may earn from bookings.
@@ -16,8 +18,13 @@ type BookingsFinancialReport struct {
 	lock            sync.Mutex
 }
 
-func NewBookingsFinancialReport() *BookingsFinancialReport {
-	return &BookingsFinancialReport{handledBookings: map[string]struct{}{}}
+// NewBookingsFinancialReport implements cqrs.EventHandlerFactory interface.
+func NewBookingsFinancialReport() cqrs.EventHandlerFactory {
+	return func(cb cqrs.CommandBus, eb cqrs.EventBus) cqrs.EventHandler {
+		return &BookingsFinancialReport{
+			handledBookings: make(map[string]struct{}),
+		}
+	}
 }
 
 func (b *BookingsFinancialReport) HandlerName() string {
@@ -46,6 +53,6 @@ func (b *BookingsFinancialReport) Handle(ctx context.Context, e interface{}) err
 
 	b.totalCharge += event.Price
 
-	fmt.Printf(">>> Already booked rooms for $%d\n", b.totalCharge)
+	fmt.Printf(">>> The room has been booked for $%d\n", b.totalCharge)
 	return nil
 }
