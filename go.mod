@@ -11,7 +11,7 @@ require (
 	github.com/fatih/color v1.15.0
 	github.com/go-chi/chi/v5 v5.0.8
 	github.com/go-chi/cors v1.2.1
-	github.com/hibiken/asynq v0.24.0
+	github.com/hibiken/asynq v0.24.1
 	github.com/joho/godotenv v1.5.1
 	github.com/lib/pq v1.10.9
 	github.com/magefile/mage v1.14.0
@@ -31,7 +31,6 @@ require (
 	github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f // indirect
 	github.com/gabriel-vasile/mimetype v1.4.2 // indirect
 	github.com/go-gorp/gorp/v3 v3.1.0 // indirect
-	github.com/go-redis/redis/v8 v8.11.5 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/golang/protobuf v1.5.3 // indirect
 	github.com/google/uuid v1.3.0 // indirect
