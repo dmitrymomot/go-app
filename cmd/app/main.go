@@ -1,38 +1,62 @@
 package main
 
 import (
+	"database/sql"
 	"fmt"
-	"net/http"
-	"time"
 
-	"github.com/dmitrymomot/go-server/pkg/httpserver"
+	"github.com/dmitrymomot/go-app/pkg/httpserver"
 	"github.com/dmitrymomot/go-utils"
 	"github.com/sirupsen/logrus"
+	"golang.org/x/sync/errgroup"
 )
 
 func main() {
 	logger := logrus.WithFields(logrus.Fields{
-		"app": "go-server",
+		"app":       appName,
+		"build_tag": buildTag,
+		"component": "main",
 	})
 	defer func() { logger.Info("Server successfully shutdown") }()
 
-	// Create a context with a timeout and set the Server's context
-	ctx, cancel := utils.NewContextWithCancel(logger)
-	defer cancel()
+	// Init DB connection
+	db, err := sql.Open("postgres", dbConnString)
+	if err != nil {
+		logger.WithError(err).Fatal("Failed to init db connection")
+	}
+	defer db.Close()
 
-	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) { fmt.Fprintln(w, "Hello, World!") })
-	server := httpserver.NewServer(":8080", handler,
-		httpserver.WithShutdownTimeout(5*time.Second),
-		httpserver.WithLogger(logger),
-	)
+	db.SetMaxOpenConns(dbMaxOpenConns)
+	db.SetMaxIdleConns(dbMaxIdleConns)
 
-	// Run the server
-	if err := server.Run(ctx); err != nil {
-		logger.Errorf("Server returned an error: %v", err)
+	if err := db.Ping(); err != nil {
+		logger.WithError(err).Fatal("Failed to ping db")
 	}
 
-	// Wait for the server to shutdown
-	logger.Info("Waiting for server shutdown")
-	<-ctx.Done()
-	logger.Info("Server shutdown")
+	// Create a context with a timeout and set the Server's context
+	ctx, cancel := utils.NewContextWithCancel(logger.WithField("component", "context"))
+	defer cancel()
+
+	// Create a new errgroup
+	eg, _ := errgroup.WithContext(ctx)
+
+	// Init router with default middlewares and routes
+	r := initRouter()
+
+	// TODO: Add your routes here
+
+	// Create a new server
+	server := httpserver.NewServer(
+		fmt.Sprintf(":%d", httpPort), r,
+		httpserver.WithShutdownTimeout(httpShutdownTimeout),
+		httpserver.WithLogger(logger.WithField("component", "http-server")),
+	)
+	defer server.Shutdown()
+
+	// Run the server
+	eg.Go(func() error { return server.Run(ctx) })
+
+	// Wait for the server to finish
+	if err := eg.Wait(); err != nil {
+		logger.WithError(err).Error("Server stopped with error")
+	}
 }

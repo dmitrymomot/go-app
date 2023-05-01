@@ -9,7 +9,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/dmitrymomot/go-server/pkg/pagination"
+	"github.com/dmitrymomot/go-app/pkg/pagination"
 	"github.com/stretchr/testify/assert"
 )
 
