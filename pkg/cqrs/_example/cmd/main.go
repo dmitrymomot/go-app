@@ -35,7 +35,7 @@ func main() {
 	}
 	defer commandsPublisher.Close()
 
-	commandsSubscriber, err := cqrs.NewSubscriber(redisClient,
+	commandsSubscriber, err := cqrs.NewSubscriber(redisClient, "example-commands",
 		cqrs.NewLogrusWrapper(logger.WithField("component", "cqrs-commands-subscriber")),
 	)
 	if err != nil {

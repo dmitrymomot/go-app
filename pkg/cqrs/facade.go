@@ -55,7 +55,7 @@ func NewFacade(
 		},
 		EventsPublisher: eventsPublisher,
 		EventsSubscriberConstructor: func(handlerName string) (message.Subscriber, error) {
-			return NewEventHandlerSubscriber(redisClient, handlerName, logger)
+			return NewSubscriber(redisClient, handlerName, logger)
 		},
 		Router:                router,
 		CommandEventMarshaler: cqrsMarshaler,
