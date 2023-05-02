@@ -17,6 +17,11 @@ func NewCreated(message string, data interface{}) *Response {
 	return New(http.StatusCreated, message, data, nil)
 }
 
+// NewOk creates new ok response
+func NewOk(message string, data interface{}) *Response {
+	return New(http.StatusOK, message, data, nil)
+}
+
 // NewNoContent creates new no content response
 func NewNoContent() *Response {
 	return New(http.StatusNoContent, "", nil, nil)
