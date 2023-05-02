@@ -7,7 +7,7 @@ require (
 	github.com/ThreeDotsLabs/watermill-redisstream v1.1.0
 	github.com/dmitrymomot/binder v0.1.0
 	github.com/dmitrymomot/go-env v1.0.2
-	github.com/dmitrymomot/go-utils v0.1.3
+	github.com/dmitrymomot/go-utils v0.1.4
 	github.com/fatih/color v1.15.0
 	github.com/go-chi/chi/v5 v5.0.8
 	github.com/go-chi/cors v1.2.1
@@ -15,7 +15,7 @@ require (
 	github.com/joho/godotenv v1.5.1
 	github.com/lib/pq v1.10.9
 	github.com/magefile/mage v1.14.0
-	github.com/redis/go-redis/v9 v9.0.3
+	github.com/redis/go-redis/v9 v9.0.4
 	github.com/rubenv/sql-migrate v1.4.0
 	github.com/segmentio/ksuid v1.0.4
 	github.com/sirupsen/logrus v1.9.0
