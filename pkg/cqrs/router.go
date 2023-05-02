@@ -32,8 +32,11 @@ func NewRouter(logger Logger, maxRetry int) (*message.Router, error) {
 		middleware.Retry{
 			MaxRetries:          maxRetry,
 			InitialInterval:     time.Millisecond * 100,
-			Logger:              logger,
+			MaxInterval:         time.Hour,
+			Multiplier:          2,
+			MaxElapsedTime:      time.Hour * 24,
 			RandomizationFactor: 0.5,
+			Logger:              logger,
 		}.Middleware,
 
 		// Recoverer handles panics from handlers.
