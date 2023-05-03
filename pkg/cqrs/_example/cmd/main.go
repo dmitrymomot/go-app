@@ -55,7 +55,7 @@ func main() {
 	}
 	defer eventsPublisher.Close()
 
-	router, err := cqrs.NewRouter(cqrs.NewLogrusWrapper(logger.WithField("component", "cqrs-router")), 0)
+	router, err := cqrs.NewRouter(cqrs.NewLogrusWrapper(logger.WithField("component", "cqrs-router")), 10)
 	if err != nil {
 		logger.WithError(err).Fatal("Cannot create router")
 	}
