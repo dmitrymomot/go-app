@@ -71,14 +71,14 @@ type (
 func EncodeError(l logger, codeAndMessageFrom func(err error) (int, interface{})) httptransport.ErrorEncoder {
 	return func(ctx context.Context, err error, w http.ResponseWriter) {
 		if err == nil {
-			l.Log("msg", "encodeError with nil error")
+			l.Log("msg", "encodeError with nil error") // nolint:errcheck
 			return
 		}
 
 		code, msg := codeAndMessageFrom(err)
 		if code >= http.StatusInternalServerError {
 			// Log only unexpected errors
-			l.Log("msg", fmt.Errorf("http transport error: %w", err))
+			l.Log("msg", fmt.Errorf("http transport error: %w", err)) // nolint:errcheck
 		}
 
 		var resp *Error
@@ -105,7 +105,7 @@ func EncodeError(l logger, codeAndMessageFrom func(err error) (int, interface{})
 
 		if err := JSON(w, resp); err != nil {
 			err = fmt.Errorf("encodeError: %w", err)
-			l.Log("msg", err.Error())
+			l.Log("msg", err.Error()) // nolint:errcheck
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 		}
 	}

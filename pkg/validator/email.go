@@ -126,8 +126,8 @@ func tryHost(host string, e EmailAddress) error {
 	if err = client.Hello(e.Domain); err == nil {
 		if err = client.Mail(fmt.Sprintf("hello@%s", e.Domain)); err == nil {
 			if err = client.Rcpt(e.String()); err == nil {
-				client.Reset() // #nosec
-				client.Quit()  // #nosec
+				client.Reset() // nolint:errcheck
+				client.Quit()  // nolint:errcheck
 
 				return nil
 			}
