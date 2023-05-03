@@ -6,6 +6,7 @@ import (
 	"sync"
 
 	"github.com/dmitrymomot/go-app/pkg/cqrs"
+	"github.com/dmitrymomot/go-utils"
 )
 
 // BookingsFinancialReport is a read model, which calculates how much money we may earn from bookings.
@@ -53,6 +54,6 @@ func (b *BookingsFinancialReport) Handle(ctx context.Context, e interface{}) err
 
 	b.totalCharge += event.Price
 
-	fmt.Printf(">>> The room has been booked for $%d\n", b.totalCharge)
+	fmt.Printf(">>> The room #%s has been booked for $%d\n%s\n", event.RoomId, b.totalCharge, utils.PrettyString(event))
 	return nil
 }

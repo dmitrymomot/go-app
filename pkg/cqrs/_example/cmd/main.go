@@ -5,13 +5,15 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/dmitrymomot/go-app/pkg/cqrs/_example/app"
-	"github.com/sirupsen/logrus"
-
 	"github.com/dmitrymomot/go-app/pkg/cqrs"
+	"github.com/dmitrymomot/go-app/pkg/cqrs/_example/app"
+	"github.com/dmitrymomot/go-env"
 	"github.com/dmitrymomot/go-utils"
 	"github.com/redis/go-redis/v9"
+	"github.com/sirupsen/logrus"
 )
+
+var simulateTraffic = env.GetBool("SIMULATE_TRAFFIC", false)
 
 func main() {
 	logger := logrus.WithFields(logrus.Fields{
@@ -78,8 +80,10 @@ func main() {
 		logger.WithError(err).Fatal("Cannot create cqrs facade")
 	}
 
-	// publish BookRoom commands every second to simulate incoming traffic
-	go publishCommands(cqrsFacade.CommandBus(), logger.WithField("component", "publishCommands"))
+	if simulateTraffic {
+		// publish BookRoom commands every second to simulate incoming traffic
+		go publishCommands(cqrsFacade.CommandBus(), logger.WithField("component", "publishCommands"))
+	}
 
 	// processors are based on router, so they will work when router will start
 	if err := router.Run(context.Background()); err != nil {

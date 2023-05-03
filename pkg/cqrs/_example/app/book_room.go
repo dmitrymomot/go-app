@@ -4,6 +4,7 @@ import (
 	"context"
 	"log"
 	"math/rand"
+	"sync"
 	"time"
 
 	"github.com/dmitrymomot/go-app/pkg/cqrs"
@@ -15,14 +16,16 @@ import (
 // In CQRS, one command must be handled by only one handler.
 // When another handler with this command is added to command processor, error will be retuerned.
 type BookRoomHandler struct {
-	eventBus cqrs.EventBus
+	eventBus    cqrs.EventBus
+	bookedRooms *sync.Map
 }
 
 // NewBookRoomHandler implements cqrs.CommanfHandlerFactory interface.
 func NewBookRoomHandler() cqrs.CommanfHandlerFactory {
 	return func(cb cqrs.CommandBus, eb cqrs.EventBus) cqrs.CommandHandler {
 		return &BookRoomHandler{
-			eventBus: eb,
+			eventBus:    eb,
+			bookedRooms: &sync.Map{},
 		}
 	}
 }
@@ -39,6 +42,12 @@ func (b BookRoomHandler) NewCommand() interface{} {
 func (b BookRoomHandler) Handle(ctx context.Context, c interface{}) error {
 	// c is always the type returned by `NewCommand`, so casting is always safe
 	cmd := c.(*BookRoom)
+
+	if _, ok := b.bookedRooms.Load(cmd.RoomId); ok {
+		// Room is already booked, we can't book it twice
+		// In production, you probably will return some error here
+		return nil
+	}
 
 	// some random price, in production you probably will calculate in wiser way
 	price := (rand.Int63n(40) + 1) * 10
