@@ -6,6 +6,12 @@ import (
 	"net/http"
 )
 
+// Predefined http encoder content type
+const (
+	ContentTypeHeader = "Content-Type"
+	ContentType       = "application/json; charset=utf-8"
+)
+
 // global default responder
 var dr Responder = NewDefaultResponder()
 
@@ -43,7 +49,7 @@ func (resp *defaultResponder) JSON(w http.ResponseWriter, response Responser, he
 	}
 
 	// set default headers
-	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set(ContentTypeHeader, ContentType)
 	// set custom headers
 	for i := 0; i < len(headersKV); i += 2 {
 		w.Header().Set(headersKV[i], headersKV[i+1])
