@@ -31,8 +31,18 @@ func Run() error {
 	return sh.RunV("go", "run", "./cmd/app/")
 }
 
+// PrepareMigration prepares the database migration
+func PrepareMigration() error {
+	color.Cyan("Preparing database migration...")
+	return sh.RunV("./scripts/prepare-migrations.sh")
+}
+
 // MigrateUp runs the database migrations up
 func MigrateUp() error {
+	if err := PrepareMigration(); err != nil {
+		return fmt.Errorf("failed to prepare migration: %w", err)
+	}
+
 	color.Cyan("Running database migrations...")
 	return sh.RunV("go", "run", "./cmd/migrate/main.go")
 }
