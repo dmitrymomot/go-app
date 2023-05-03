@@ -2,6 +2,7 @@ package app
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"math/rand"
 	"sync"
@@ -51,6 +52,11 @@ func (b BookRoomHandler) Handle(ctx context.Context, c interface{}) error {
 
 	// some random price, in production you probably will calculate in wiser way
 	price := (rand.Int63n(40) + 1) * 10
+
+	// simulate some heavy work
+	if price%15 == 0 {
+		return fmt.Errorf("failed to book room #%s", cmd.RoomId)
+	}
 
 	log.Printf(
 		"Booked %s for %s from %s to %s",
