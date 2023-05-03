@@ -42,6 +42,8 @@ type (
 		Message string `json:"message" example:"Validation error"`
 		// Validation is a validation of error
 		Validation map[string][]string `json:"validation,omitempty" example:"{'email': ['Email is required']}"`
+		// Meta is a meta of response
+		Meta *Meta `json:"meta,omitempty"`
 	}
 
 	// List represents a list of response data
@@ -74,6 +76,8 @@ type (
 		Description string `json:"description" example:"Description"`
 		// Version is a version of response
 		Version string `json:"version" example:"1.0.0"`
+		// RequestID is a request ID of response
+		RequestID string `json:"request_id"`
 	}
 )
 
