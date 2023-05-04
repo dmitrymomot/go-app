@@ -8,11 +8,12 @@ require (
 	github.com/ThreeDotsLabs/watermill-redisstream v1.1.0
 	github.com/dmitrymomot/binder v0.1.0
 	github.com/dmitrymomot/go-env v1.0.2
-	github.com/dmitrymomot/go-utils v0.1.4
+	github.com/dmitrymomot/go-utils v0.1.5
 	github.com/fatih/color v1.15.0
 	github.com/go-chi/chi/v5 v5.0.8
 	github.com/go-chi/cors v1.2.1
 	github.com/go-kit/kit v0.12.0
+	github.com/google/uuid v1.3.0
 	github.com/gookit/validate v1.4.6
 	github.com/hibiken/asynq v0.24.1
 	github.com/joho/godotenv v1.5.1
@@ -44,7 +45,6 @@ require (
 	github.com/golang-jwt/jwt/v4 v4.0.0 // indirect
 	github.com/golang/protobuf v1.5.3 // indirect
 	github.com/google/go-cmp v0.5.8 // indirect
-	github.com/google/uuid v1.3.0 // indirect
 	github.com/gookit/filter v1.1.4 // indirect
 	github.com/gookit/goutil v0.6.0 // indirect
 	github.com/gorilla/schema v1.2.0 // indirect

@@ -105,8 +105,8 @@ github.com/dmitrymomot/binder v0.1.0 h1:PzS7mmuIjZSbk/9i6YK7sqPy+93jyRrxcj0CJq89
 github.com/dmitrymomot/binder v0.1.0/go.mod h1:guoXdBp6d2cQO0ldSlhFokwsqSRypcMJc7Qg3i2zW+Y=
 github.com/dmitrymomot/go-env v1.0.2 h1:lTqpscGNU5Bgx98JmTgz3R3fYghQzOT0NhqU6j4yuhY=
 github.com/dmitrymomot/go-env v1.0.2/go.mod h1:Xc3/tGc5j+0ggXOy+aWNSayu8LGDcFc+Ueu+btpao2Y=
-github.com/dmitrymomot/go-utils v0.1.4 h1:l9lTgx5f1CNYgBLDIGATV3KWpt9tA94esmu+5LBaciE=
-github.com/dmitrymomot/go-utils v0.1.4/go.mod h1:wdGncPZfg18QshVVu0IgfrQHvup1OM+/gg8BBfRp9CE=
+github.com/dmitrymomot/go-utils v0.1.5 h1:5C+6+sFxahbYYgAiOQQBnktonqo8ZE1/GWLnLbV5ZTk=
+github.com/dmitrymomot/go-utils v0.1.5/go.mod h1:wdGncPZfg18QshVVu0IgfrQHvup1OM+/gg8BBfRp9CE=
 github.com/envoyproxy/go-control-plane v0.9.0/go.mod h1:YTl/9mNaCwkRvm6d1a2C3ymFceY/DCBVvsKhRF0iEA4=
 github.com/envoyproxy/go-control-plane v0.9.1-0.20191026205805-5f8ba28d4473/go.mod h1:YTl/9mNaCwkRvm6d1a2C3ymFceY/DCBVvsKhRF0iEA4=
 github.com/envoyproxy/go-control-plane v0.9.4/go.mod h1:6rpuAdCZL397s3pYoYcLgu1mIlRU8Am5FuJP05cCM98=
