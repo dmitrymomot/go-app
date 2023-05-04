@@ -7,9 +7,9 @@ package eventstore
 
 import (
 	"context"
-	"encoding/json"
 
 	"github.com/google/uuid"
+	"github.com/jmoiron/sqlx/types"
 )
 
 const loadLatestSnapshot = `-- name: LoadLatestSnapshot :one
@@ -72,11 +72,11 @@ VALUES ($1, $2, COALESCE((SELECT MAX(snapshot_version)+1 FROM events WHERE aggre
 `
 
 type StoreSnapshotParams struct {
-	AggregateID        uuid.UUID       `json:"aggregate_id"`
-	AggregateType      string          `json:"aggregate_type"`
-	SnapshotData       json.RawMessage `json:"snapshot_data"`
-	SnapshotTime       int64           `json:"snapshot_time"`
-	LatestEventVersion int32           `json:"latest_event_version"`
+	AggregateID        uuid.UUID      `json:"aggregate_id"`
+	AggregateType      string         `json:"aggregate_type"`
+	SnapshotData       types.JSONText `json:"snapshot_data"`
+	SnapshotTime       int64          `json:"snapshot_time"`
+	LatestEventVersion int32          `json:"latest_event_version"`
 }
 
 func (q *Queries) StoreSnapshot(ctx context.Context, arg StoreSnapshotParams) (Snapshot, error) {

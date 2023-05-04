@@ -1,8 +1,6 @@
 package eventstore
 
 import (
-	"encoding/json"
-
 	"github.com/google/uuid"
 )
 
@@ -19,7 +17,7 @@ type Aggregator interface {
 	// AggregateVersion returns the version of the aggregate
 	AggregateVersion() int32
 	// AggregateState returns the state of the aggregate
-	AggregateState() json.RawMessage
+	AggregateState() ([]byte, error)
 	// LatestEventVersion returns the version of the latest event
 	LatestEventVersion() int32
 	// LatestEventTime returns the time of the latest event

@@ -2,19 +2,21 @@ package eventstore
 
 import (
 	"context"
-	"encoding/json"
+	"fmt"
 
 	"github.com/google/uuid"
+	"github.com/jmoiron/sqlx/types"
 )
 
 const loadAllEvents = `-- name: LoadAllEvents :many
-SELECT event_id, aggregate_id, event_type, event_version, event_data, event_time FROM event_store 
+SELECT event_id, aggregate_id, event_type, event_version, event_data, event_time FROM %s 
 WHERE aggregate_id = $1
 ORDER BY event_time ASC
 `
 
 func (q *queries) LoadAllEvents(ctx context.Context, aggregateID uuid.UUID) ([]Event, error) {
-	rows, err := q.db.QueryContext(ctx, loadAllEvents, aggregateID)
+	query := fmt.Sprintf(loadAllEvents, q.eventTableName)
+	rows, err := q.db.QueryContext(ctx, query, aggregateID)
 	if err != nil {
 		return nil, err
 	}
@@ -44,7 +46,7 @@ func (q *queries) LoadAllEvents(ctx context.Context, aggregateID uuid.UUID) ([]E
 }
 
 const loadEventsRange = `-- name: LoadEventsRange :many
-SELECT event_id, aggregate_id, event_type, event_version, event_data, event_time FROM event_store 
+SELECT event_id, aggregate_id, event_type, event_version, event_data, event_time FROM %s 
 WHERE aggregate_id = $1 AND event_version >= $2 AND event_version <= $3
 ORDER BY event_time ASC
 `
@@ -56,7 +58,8 @@ type LoadEventsRangeParams struct {
 }
 
 func (q *queries) LoadEventsRange(ctx context.Context, arg LoadEventsRangeParams) ([]Event, error) {
-	rows, err := q.db.QueryContext(ctx, loadEventsRange, arg.AggregateID, arg.FromEventVersion, arg.ToEventVersion)
+	query := fmt.Sprintf(loadEventsRange, q.eventTableName)
+	rows, err := q.db.QueryContext(ctx, query, arg.AggregateID, arg.FromEventVersion, arg.ToEventVersion)
 	if err != nil {
 		return nil, err
 	}
@@ -86,7 +89,7 @@ func (q *queries) LoadEventsRange(ctx context.Context, arg LoadEventsRangeParams
 }
 
 const loadNewestEvents = `-- name: LoadNewestEvents :many
-SELECT event_id, aggregate_id, event_type, event_version, event_data, event_time FROM event_store 
+SELECT event_id, aggregate_id, event_type, event_version, event_data, event_time FROM %s 
 WHERE aggregate_id = $1 AND event_version > $2
 ORDER BY event_time ASC
 `
@@ -97,7 +100,8 @@ type LoadNewestEventsParams struct {
 }
 
 func (q *queries) LoadNewestEvents(ctx context.Context, arg LoadNewestEventsParams) ([]Event, error) {
-	rows, err := q.db.QueryContext(ctx, loadNewestEvents, arg.AggregateID, arg.LatestEventVersion)
+	query := fmt.Sprintf(loadNewestEvents, q.eventTableName)
+	rows, err := q.db.QueryContext(ctx, query, arg.AggregateID, arg.LatestEventVersion)
 	if err != nil {
 		return nil, err
 	}
@@ -127,19 +131,20 @@ func (q *queries) LoadNewestEvents(ctx context.Context, arg LoadNewestEventsPara
 }
 
 const storeEvent = `-- name: StoreEvent :one
-INSERT INTO event_store (aggregate_id, event_type, event_version, event_data, event_time)
-VALUES ($1, $2, COALESCE((SELECT MAX(event_version)+1 FROM event_store WHERE aggregate_id = $1),1), $3, $4) RETURNING event_id, aggregate_id, event_type, event_version, event_data, event_time
+INSERT INTO %[1]s (aggregate_id, event_type, event_version, event_data, event_time)
+VALUES ($1, $2, COALESCE((SELECT MAX(event_version)+1 FROM %[1]s WHERE aggregate_id = $1),1), $3, $4) RETURNING event_id, aggregate_id, event_type, event_version, event_data, event_time
 `
 
 type StoreEventParams struct {
-	AggregateID uuid.UUID       `json:"aggregate_id"`
-	EventType   string          `json:"event_type"`
-	EventData   json.RawMessage `json:"event_data"`
-	EventTime   int64           `json:"event_time"`
+	AggregateID uuid.UUID      `json:"aggregate_id"`
+	EventType   string         `json:"event_type"`
+	EventData   types.JSONText `json:"event_data"`
+	EventTime   int64          `json:"event_time"`
 }
 
 func (q *queries) StoreEvent(ctx context.Context, arg StoreEventParams) (Event, error) {
-	row := q.db.QueryRowContext(ctx, storeEvent,
+	query := fmt.Sprintf(storeEvent, q.eventTableName)
+	row := q.db.QueryRowContext(ctx, query,
 		arg.AggregateID,
 		arg.EventType,
 		arg.EventData,

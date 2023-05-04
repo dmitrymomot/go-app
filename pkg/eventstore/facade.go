@@ -27,7 +27,7 @@ func NewEventStore(ctx context.Context, db *sql.DB, eventStreamName string) (*Ev
 
 	es := &EventStore{
 		db:          db,
-		repo:        newQueries(db),
+		repo:        newQueries(db, eventStreamName),
 		eventStream: eventStreamName,
 	}
 
@@ -48,10 +48,10 @@ func (es *EventStore) prepare(ctx context.Context) error {
 	defer tx.Rollback()
 
 	repo := es.repo.WithTx(tx)
-	if err := repo.CreateEventsTable(ctx, es.eventStream); err != nil {
+	if err := repo.CreateEventsTable(ctx); err != nil {
 		return fmt.Errorf("failed to create events table: %w", err)
 	}
-	if err := repo.CreateSnapshotTable(ctx, es.eventStream); err != nil {
+	if err := repo.CreateSnapshotTable(ctx); err != nil {
 		return fmt.Errorf("failed to create snapshot table: %w", err)
 	}
 	if err := tx.Commit(); err != nil {
@@ -78,6 +78,9 @@ func (es *EventStore) AppendEvent(ctx context.Context, event Event) (Event, erro
 
 	e, err := repo.StoreEvent(ctx, StoreEventParams{
 		AggregateID: event.AggregateID,
+		EventType:   event.EventType,
+		EventData:   event.EventData,
+		EventTime:   event.EventTime,
 	})
 	if err != nil {
 		return Event{}, fmt.Errorf("failed to append event: %w", err)
@@ -231,10 +234,14 @@ func (es *EventStore) StoreSnapshot(ctx context.Context, agg Aggregator) (Aggreg
 
 	repo := es.repo.WithTx(tx)
 
+	state, err := agg.AggregateState()
+	if err != nil {
+		return agg, fmt.Errorf("failed to get aggregate state: %w", err)
+	}
 	snapshot, err := repo.StoreSnapshot(ctx, StoreSnapshotParams{
 		AggregateID:        agg.AggregateID(),
 		AggregateType:      agg.AggregateType(),
-		SnapshotData:       agg.AggregateState(),
+		SnapshotData:       state,
 		SnapshotTime:       agg.LatestEventTime(),
 		LatestEventVersion: agg.LatestEventVersion(),
 	})
@@ -299,10 +306,14 @@ func (es *EventStore) MakeSnapshot(ctx context.Context, agg Aggregator) (Aggrega
 		}
 	}
 
+	state, err := agg.AggregateState()
+	if err != nil {
+		return agg, fmt.Errorf("failed to get aggregate state: %w", err)
+	}
 	snapshot, err = repo.StoreSnapshot(ctx, StoreSnapshotParams{
 		AggregateID:        agg.AggregateID(),
 		AggregateType:      agg.AggregateType(),
-		SnapshotData:       agg.AggregateState(),
+		SnapshotData:       state,
 		SnapshotTime:       agg.LatestEventTime(),
 		LatestEventVersion: agg.LatestEventVersion(),
 	})

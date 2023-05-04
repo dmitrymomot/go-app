@@ -16,6 +16,7 @@ require (
 	github.com/google/uuid v1.3.0
 	github.com/gookit/validate v1.4.6
 	github.com/hibiken/asynq v0.24.1
+	github.com/jmoiron/sqlx v1.3.5
 	github.com/joho/godotenv v1.5.1
 	github.com/lib/pq v1.10.9
 	github.com/magefile/mage v1.14.0
@@ -38,6 +39,7 @@ require (
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f // indirect
 	github.com/gabriel-vasile/mimetype v1.4.2 // indirect
+	github.com/go-faker/faker/v4 v4.1.0 // indirect
 	github.com/go-gorp/gorp/v3 v3.1.0 // indirect
 	github.com/go-kit/log v0.2.1 // indirect
 	github.com/go-logfmt/logfmt v0.5.1 // indirect

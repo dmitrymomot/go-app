@@ -21,3 +21,6 @@ overrides:
   - go_type: "github.com/google/uuid.NullUUID"
     db_type: "uuid"
     nullable: true
+  # - go_type: "github.com/jmoiron/sqlx/types.JSONText"
+  #   db_type: "jsonb"
+  #   nullable: false
