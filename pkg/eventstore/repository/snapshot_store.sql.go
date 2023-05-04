@@ -13,75 +13,89 @@ import (
 )
 
 const loadLatestSnapshot = `-- name: LoadLatestSnapshot :one
-SELECT snapshot_id, aggregate_id, snapshot_version, snapshot_data, snapshot_time FROM snapshot_store 
-WHERE aggregate_id=$1
+SELECT snapshot_id, aggregate_id, aggregate_type, snapshot_version, snapshot_data, snapshot_time, latest_event_version FROM snapshots 
+WHERE aggregate_id=$1 AND aggregate_type=$2
 ORDER BY snapshot_version DESC
 LIMIT 1
 `
 
-func (q *Queries) LoadLatestSnapshot(ctx context.Context, aggregateID uuid.UUID) (SnapshotStore, error) {
-	row := q.db.QueryRowContext(ctx, loadLatestSnapshot, aggregateID)
-	var i SnapshotStore
+type LoadLatestSnapshotParams struct {
+	AggregateID   uuid.UUID `json:"aggregate_id"`
+	AggregateType string    `json:"aggregate_type"`
+}
+
+func (q *Queries) LoadLatestSnapshot(ctx context.Context, arg LoadLatestSnapshotParams) (Snapshot, error) {
+	row := q.db.QueryRowContext(ctx, loadLatestSnapshot, arg.AggregateID, arg.AggregateType)
+	var i Snapshot
 	err := row.Scan(
 		&i.SnapshotID,
 		&i.AggregateID,
+		&i.AggregateType,
 		&i.SnapshotVersion,
 		&i.SnapshotData,
 		&i.SnapshotTime,
+		&i.LatestEventVersion,
 	)
 	return i, err
 }
 
 const loadSnapshot = `-- name: LoadSnapshot :one
-SELECT snapshot_id, aggregate_id, snapshot_version, snapshot_data, snapshot_time FROM snapshot_store 
-WHERE aggregate_id=$1 AND snapshot_version=$2
+SELECT snapshot_id, aggregate_id, aggregate_type, snapshot_version, snapshot_data, snapshot_time, latest_event_version FROM snapshots 
+WHERE aggregate_id=$1 AND aggregate_type=$2 AND snapshot_version=$3
 LIMIT 1
 `
 
 type LoadSnapshotParams struct {
 	AggregateID     uuid.UUID `json:"aggregate_id"`
+	AggregateType   string    `json:"aggregate_type"`
 	SnapshotVersion int32     `json:"snapshot_version"`
 }
 
-func (q *Queries) LoadSnapshot(ctx context.Context, arg LoadSnapshotParams) (SnapshotStore, error) {
-	row := q.db.QueryRowContext(ctx, loadSnapshot, arg.AggregateID, arg.SnapshotVersion)
-	var i SnapshotStore
+func (q *Queries) LoadSnapshot(ctx context.Context, arg LoadSnapshotParams) (Snapshot, error) {
+	row := q.db.QueryRowContext(ctx, loadSnapshot, arg.AggregateID, arg.AggregateType, arg.SnapshotVersion)
+	var i Snapshot
 	err := row.Scan(
 		&i.SnapshotID,
 		&i.AggregateID,
+		&i.AggregateType,
 		&i.SnapshotVersion,
 		&i.SnapshotData,
 		&i.SnapshotTime,
+		&i.LatestEventVersion,
 	)
 	return i, err
 }
 
 const storeSnapshot = `-- name: StoreSnapshot :one
-INSERT INTO snapshot_store (aggregate_id, snapshot_version, snapshot_data, snapshot_time)
-VALUES ($1, $2, $3, $4) RETURNING snapshot_id, aggregate_id, snapshot_version, snapshot_data, snapshot_time
+INSERT INTO snapshots (aggregate_id, aggregate_type, snapshot_version, snapshot_data, snapshot_time, latest_event_version)
+VALUES ($1, $2, COALESCE((SELECT MAX(snapshot_version)+1 FROM events WHERE aggregate_id = $1 AND aggregate_type = $2),1), $3, $4, $5) RETURNING snapshot_id, aggregate_id, aggregate_type, snapshot_version, snapshot_data, snapshot_time, latest_event_version
 `
 
 type StoreSnapshotParams struct {
-	AggregateID     uuid.UUID       `json:"aggregate_id"`
-	SnapshotVersion int32           `json:"snapshot_version"`
-	SnapshotData    json.RawMessage `json:"snapshot_data"`
-	SnapshotTime    int64           `json:"snapshot_time"`
+	AggregateID        uuid.UUID       `json:"aggregate_id"`
+	AggregateType      string          `json:"aggregate_type"`
+	SnapshotData       json.RawMessage `json:"snapshot_data"`
+	SnapshotTime       int64           `json:"snapshot_time"`
+	LatestEventVersion int32           `json:"latest_event_version"`
 }
 
-func (q *Queries) StoreSnapshot(ctx context.Context, arg StoreSnapshotParams) (SnapshotStore, error) {
+func (q *Queries) StoreSnapshot(ctx context.Context, arg StoreSnapshotParams) (Snapshot, error) {
 	row := q.db.QueryRowContext(ctx, storeSnapshot,
 		arg.AggregateID,
-		arg.SnapshotVersion,
+		arg.AggregateType,
 		arg.SnapshotData,
 		arg.SnapshotTime,
+		arg.LatestEventVersion,
 	)
-	var i SnapshotStore
+	var i Snapshot
 	err := row.Scan(
 		&i.SnapshotID,
 		&i.AggregateID,
+		&i.AggregateType,
 		&i.SnapshotVersion,
 		&i.SnapshotData,
 		&i.SnapshotTime,
+		&i.LatestEventVersion,
 	)
 	return i, err
 }

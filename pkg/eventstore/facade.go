@@ -3,11 +3,9 @@ package eventstore
 import (
 	"context"
 	"database/sql"
-	"encoding/json"
 	"errors"
 	"fmt"
 
-	"github.com/dmitrymomot/go-utils"
 	"github.com/google/uuid"
 )
 
@@ -139,9 +137,12 @@ func (es *EventStore) LoadNewestEvents(ctx context.Context, aggregateID uuid.UUI
 	return events, nil
 }
 
-// LoadLatestSnapshot loads the latest snapshot for the given aggregate id
-func (es *EventStore) LoadLatestSnapshot(ctx context.Context, aggregateID uuid.UUID) (Snapshot, error) {
-	snapshot, err := es.repo.LoadLatestSnapshot(ctx, aggregateID)
+// LoadLatestSnapshot loads the latest snapshot for the given aggregate id and aggregate type
+func (es *EventStore) LoadLatestSnapshot(ctx context.Context, aggregateID uuid.UUID, aggregateType string) (Snapshot, error) {
+	snapshot, err := es.repo.LoadLatestSnapshot(ctx, LoadLatestSnapshotParams{
+		AggregateID:   aggregateID,
+		AggregateType: aggregateType,
+	})
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return Snapshot{}, ErrNoSnapshotFound
@@ -157,9 +158,10 @@ func (es *EventStore) LoadLatestSnapshot(ctx context.Context, aggregateID uuid.U
 }
 
 // LoadSnapshot loads the snapshot for the given aggregate id and snapshot version
-func (es *EventStore) LoadSnapshot(ctx context.Context, aggregateID uuid.UUID, snapshotVersion int32) (Snapshot, error) {
+func (es *EventStore) LoadSnapshot(ctx context.Context, aggregateID uuid.UUID, aggregateType string, snapshotVersion int32) (Snapshot, error) {
 	snapshot, err := es.repo.LoadSnapshot(ctx, LoadSnapshotParams{
 		AggregateID:     aggregateID,
+		AggregateType:   aggregateType,
 		SnapshotVersion: snapshotVersion,
 	})
 	if err != nil {
@@ -179,150 +181,143 @@ func (es *EventStore) LoadSnapshot(ctx context.Context, aggregateID uuid.UUID, s
 // LoadCurrentState loads the current state for the given aggregate id.
 // It loads the latest snapshot and all events since the snapshot version.
 // Then it applies all events to the snapshot and returns the state.
-func (es *EventStore) LoadCurrentState(ctx context.Context, aggregateID uuid.UUID) (Snapshot, error) {
+func (es *EventStore) LoadCurrentState(ctx context.Context, aggregate Aggregator) (Aggregator, error) {
 	// load latest snapshot for the given aggregate id
-	snapshot, err := es.repo.LoadLatestSnapshot(ctx, aggregateID)
-	if err != nil {
-		if !errors.Is(err, sql.ErrNoRows) {
-			return Snapshot{}, fmt.Errorf("failed to load latest snapshot: %w", err)
-		}
-	}
-
-	// if there is no snapshot, we can just load all events
-	events, err := es.repo.LoadNewestEvents(ctx, LoadNewestEventsParams{
-		AggregateID:        aggregateID,
-		LatestEventVersion: snapshot.SnapshotVersion,
+	snapshot, err := es.repo.LoadLatestSnapshot(ctx, LoadLatestSnapshotParams{
+		AggregateID:   aggregate.AggregateID(),
+		AggregateType: aggregate.AggregateType(),
 	})
 	if err != nil {
 		if !errors.Is(err, sql.ErrNoRows) {
-			return Snapshot{}, fmt.Errorf("failed to load newest events: %w", err)
+			return aggregate, fmt.Errorf("failed to load latest snapshot: %w", err)
 		}
 	}
 
-	// apply events to the snapshot
-	snapshot, err = applyEventsToSnapshot(snapshot, events)
-	if err != nil {
-		return Snapshot{}, fmt.Errorf("failed to apply events to snapshot: %w", err)
+	// init aggregate with snapshot
+	if err := aggregate.Init(snapshot); err != nil {
+		return aggregate, fmt.Errorf("failed to init aggregate: %w", err)
 	}
 
-	return snapshot, nil
+	// if there is no snapshot, we can just load all events,
+	// otherwise we load all events since the snapshot version
+	events, err := es.repo.LoadNewestEvents(ctx, LoadNewestEventsParams{
+		AggregateID:        aggregate.AggregateID(),
+		LatestEventVersion: aggregate.LatestEventVersion(),
+	})
+	if err != nil {
+		if !errors.Is(err, sql.ErrNoRows) {
+			return aggregate, fmt.Errorf("failed to load newest events: %w", err)
+		}
+	}
+
+	// aggregate state is up to date
+	for _, event := range events {
+		if err := aggregate.OnEvent(event); err != nil {
+			return aggregate, fmt.Errorf("failed to apply event: %w", err)
+		}
+	}
+
+	return aggregate, nil
 }
 
-// StoreSnapshot stores a snapshot for the given aggregate id
-func (es *EventStore) StoreSnapshot(ctx context.Context, snapshot Snapshot) (Snapshot, error) {
+// StoreSnapshot stores a snapshot for the given aggregator.
+// It stores the snapshot and then initializes the aggregator with the snapshot.
+func (es *EventStore) StoreSnapshot(ctx context.Context, agg Aggregator) (Aggregator, error) {
 	tx, err := es.db.Begin()
 	if err != nil {
-		return Snapshot{}, fmt.Errorf("failed to begin transaction: %w", err)
+		return agg, fmt.Errorf("failed to begin transaction: %w", err)
 	}
 	defer tx.Rollback()
 
 	repo := es.repo.WithTx(tx)
 
-	snapshot, err = repo.StoreSnapshot(ctx, StoreSnapshotParams{
-		AggregateID:     snapshot.AggregateID,
-		SnapshotVersion: snapshot.SnapshotVersion,
-		SnapshotData:    snapshot.SnapshotData,
-		SnapshotTime:    snapshot.SnapshotTime,
+	snapshot, err := repo.StoreSnapshot(ctx, StoreSnapshotParams{
+		AggregateID:        agg.AggregateID(),
+		AggregateType:      agg.AggregateType(),
+		SnapshotData:       agg.AggregateState(),
+		SnapshotTime:       agg.LatestEventTime(),
+		LatestEventVersion: agg.LatestEventVersion(),
 	})
 	if err != nil {
-		return Snapshot{}, fmt.Errorf("failed to store snapshot: %w", err)
+		return agg, fmt.Errorf("failed to store snapshot: %w", err)
+	}
+
+	// init aggregate with snapshot
+	if err := agg.Init(snapshot); err != nil {
+		return agg, fmt.Errorf("failed to init aggregate: %w", err)
 	}
 
 	if err := tx.Commit(); err != nil {
-		return Snapshot{}, fmt.Errorf("failed to commit transaction: %w", err)
+		return agg, fmt.Errorf("failed to commit transaction: %w", err)
 	}
 
-	return snapshot, nil
+	return agg, nil
 }
 
 // MakeSnapshot makes a snapshot for the given aggregate id.
+// Helpful when you want to load all events since the snapshot and apply them to the aggregator.
 // It loads the latest snapshot and all events since the snapshot version.
 // Then it applies all events to the snapshot and stores the new snapshot.
-func (es *EventStore) MakeSnapshot(ctx context.Context, aggregateID uuid.UUID) (Snapshot, error) {
+func (es *EventStore) MakeSnapshot(ctx context.Context, agg Aggregator) (Aggregator, error) {
 	tx, err := es.db.Begin()
 	if err != nil {
-		return Snapshot{}, fmt.Errorf("failed to begin transaction: %w", err)
+		return agg, fmt.Errorf("failed to begin transaction: %w", err)
 	}
 	defer tx.Rollback()
 
 	repo := es.repo.WithTx(tx)
 
 	// load latest snapshot for the given aggregate id
-	snapshot, err := repo.LoadLatestSnapshot(ctx, aggregateID)
+	snapshot, err := repo.LoadLatestSnapshot(ctx, LoadLatestSnapshotParams{
+		AggregateID:   agg.AggregateID(),
+		AggregateType: agg.AggregateType(),
+	})
 	if err != nil {
 		if !errors.Is(err, sql.ErrNoRows) {
-			return Snapshot{}, fmt.Errorf("failed to load latest snapshot: %w", err)
+			return agg, fmt.Errorf("failed to load latest snapshot: %w", err)
 		}
+	}
+
+	// init aggregate with snapshot
+	if err := agg.Init(snapshot); err != nil {
+		return agg, fmt.Errorf("failed to init aggregate: %w", err)
 	}
 
 	// if there is no snapshot, we can just load all events
 	events, err := repo.LoadNewestEvents(ctx, LoadNewestEventsParams{
-		AggregateID:        aggregateID,
-		LatestEventVersion: snapshot.SnapshotVersion,
+		AggregateID:        agg.AggregateID(),
+		LatestEventVersion: agg.LatestEventVersion(),
 	})
 	if err != nil {
-		return Snapshot{}, fmt.Errorf("failed to load newest events: %w", err)
+		return agg, fmt.Errorf("failed to load newest events: %w", err)
 	}
 
-	// apply events to the snapshot
-	snapshot, err = applyEventsToSnapshot(snapshot, events)
-	if err != nil {
-		return Snapshot{}, fmt.Errorf("failed to apply events to snapshot: %w", err)
+	// apply events to the aggregate
+	for _, event := range events {
+		if err := agg.OnEvent(event); err != nil {
+			return agg, fmt.Errorf("failed to apply event %s: %w", event.EventType, err)
+		}
 	}
 
 	snapshot, err = repo.StoreSnapshot(ctx, StoreSnapshotParams{
-		AggregateID:     snapshot.AggregateID,
-		SnapshotVersion: snapshot.SnapshotVersion,
-		SnapshotData:    snapshot.SnapshotData,
-		SnapshotTime:    snapshot.SnapshotTime,
+		AggregateID:        agg.AggregateID(),
+		AggregateType:      agg.AggregateType(),
+		SnapshotData:       agg.AggregateState(),
+		SnapshotTime:       agg.LatestEventTime(),
+		LatestEventVersion: agg.LatestEventVersion(),
 	})
+	if err != nil {
+		return agg, fmt.Errorf("failed to store snapshot: %w", err)
+	}
+
+	// init aggregate with snapshot
+	if err := agg.Init(snapshot); err != nil {
+		return agg, fmt.Errorf("failed to init aggregate: %w", err)
+	}
 
 	if err := tx.Commit(); err != nil {
-		return Snapshot{}, fmt.Errorf("failed to commit transaction: %w", err)
+		return agg, fmt.Errorf("failed to commit transaction: %w", err)
 	}
 
-	return snapshot, nil
-}
-
-// apply events to snapshot
-func applyEventsToSnapshot(snapshot Snapshot, events []Event) (Snapshot, error) {
-	// if there are no events since the last snapshot, we can return the snapshot as is
-	if len(events) == 0 {
-		if snapshot.SnapshotID == uuid.Nil {
-			return Snapshot{}, ErrFailedToMakeSnapshot
-		}
-		return snapshot, nil
-	}
-
-	// merge snapshot data with event data
-	snapshotData := make(map[string]interface{})
-	if snapshot.SnapshotData != nil {
-		if err := json.Unmarshal(snapshot.SnapshotData, &snapshotData); err != nil {
-			return Snapshot{}, fmt.Errorf("failed to unmarshal snapshot data: %w", err)
-		}
-	}
-
-	for _, event := range events {
-		if event.EventData == nil {
-			continue
-		}
-		eventData := make(map[string]interface{})
-		if err := json.Unmarshal(event.EventData, &eventData); err != nil {
-			return Snapshot{}, fmt.Errorf("failed to unmarshal event data: %w", err)
-		}
-		snapshotData = utils.MergeIntoMapRecursively(snapshotData, eventData)
-	}
-
-	// store new snapshot
-	snapshotDataJSON, err := json.Marshal(snapshotData)
-	if err != nil {
-		return Snapshot{}, fmt.Errorf("failed to marshal snapshot data: %w", err)
-	}
-
-	return Snapshot{
-		AggregateID:     snapshot.AggregateID,
-		SnapshotVersion: events[len(events)-1].EventVersion,
-		SnapshotData:    snapshotDataJSON,
-		SnapshotTime:    events[len(events)-1].EventTime,
-	}, nil
+	return agg, nil
 }

@@ -35,12 +35,13 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 CREATE TABLE IF NOT EXISTS %[1]s_snapshots (
     snapshot_id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
     aggregate_id uuid NOT NULL,
+    aggregate_type VARCHAR(255) NOT NULL,
     snapshot_version INT NOT NULL,
     snapshot_data JSONB NOT NULL,
     snapshot_time BIGINT NOT NULL
 );
 CREATE INDEX IF NOT EXISTS %[1]s_snapshots_aggregate_id_idx ON %[1]s_snapshots
-    USING BTREE (aggregate_id, snapshot_version DESC);
+    USING BTREE (aggregate_id, aggregate_type, snapshot_version DESC);
 CLUSTER %[1]s_snapshots USING %[1]s_snapshots_aggregate_id_idx;
 `
 

@@ -16,9 +16,11 @@ type Event struct {
 }
 
 type Snapshot struct {
-	SnapshotID      uuid.UUID       `json:"snapshot_id"`
-	AggregateID     uuid.UUID       `json:"aggregate_id"`
-	SnapshotVersion int32           `json:"snapshot_version"`
-	SnapshotData    json.RawMessage `json:"snapshot_data"`
-	SnapshotTime    int64           `json:"snapshot_time"`
+	SnapshotID         uuid.UUID       `json:"snapshot_id"`
+	AggregateID        uuid.UUID       `json:"aggregate_id"`
+	AggregateType      string          `json:"aggregate_type"`
+	SnapshotVersion    int32           `json:"snapshot_version"`
+	SnapshotData       json.RawMessage `json:"snapshot_data"`
+	SnapshotTime       int64           `json:"snapshot_time"`
+	LatestEventVersion int32           `json:"latest_event_version"`
 }

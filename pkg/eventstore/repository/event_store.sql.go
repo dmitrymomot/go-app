@@ -13,20 +13,20 @@ import (
 )
 
 const loadAllEvents = `-- name: LoadAllEvents :many
-SELECT event_id, aggregate_id, event_type, event_version, event_data, event_time FROM event_store 
+SELECT event_id, aggregate_id, event_type, event_version, event_data, event_time FROM events 
 WHERE aggregate_id = $1
 ORDER BY event_time ASC
 `
 
-func (q *Queries) LoadAllEvents(ctx context.Context, aggregateID uuid.UUID) ([]EventStore, error) {
+func (q *Queries) LoadAllEvents(ctx context.Context, aggregateID uuid.UUID) ([]Event, error) {
 	rows, err := q.db.QueryContext(ctx, loadAllEvents, aggregateID)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	items := []EventStore{}
+	items := []Event{}
 	for rows.Next() {
-		var i EventStore
+		var i Event
 		if err := rows.Scan(
 			&i.EventID,
 			&i.AggregateID,
@@ -49,7 +49,7 @@ func (q *Queries) LoadAllEvents(ctx context.Context, aggregateID uuid.UUID) ([]E
 }
 
 const loadEventsRange = `-- name: LoadEventsRange :many
-SELECT event_id, aggregate_id, event_type, event_version, event_data, event_time FROM event_store 
+SELECT event_id, aggregate_id, event_type, event_version, event_data, event_time FROM events 
 WHERE aggregate_id = $1 AND event_version >= $2 AND event_version <= $3
 ORDER BY event_time ASC
 `
@@ -60,15 +60,15 @@ type LoadEventsRangeParams struct {
 	ToEventVersion   int32     `json:"to_event_version"`
 }
 
-func (q *Queries) LoadEventsRange(ctx context.Context, arg LoadEventsRangeParams) ([]EventStore, error) {
+func (q *Queries) LoadEventsRange(ctx context.Context, arg LoadEventsRangeParams) ([]Event, error) {
 	rows, err := q.db.QueryContext(ctx, loadEventsRange, arg.AggregateID, arg.FromEventVersion, arg.ToEventVersion)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	items := []EventStore{}
+	items := []Event{}
 	for rows.Next() {
-		var i EventStore
+		var i Event
 		if err := rows.Scan(
 			&i.EventID,
 			&i.AggregateID,
@@ -91,7 +91,7 @@ func (q *Queries) LoadEventsRange(ctx context.Context, arg LoadEventsRangeParams
 }
 
 const loadNewestEvents = `-- name: LoadNewestEvents :many
-SELECT event_id, aggregate_id, event_type, event_version, event_data, event_time FROM event_store 
+SELECT event_id, aggregate_id, event_type, event_version, event_data, event_time FROM events 
 WHERE aggregate_id = $1 AND event_version > $2
 ORDER BY event_time ASC
 `
@@ -101,15 +101,15 @@ type LoadNewestEventsParams struct {
 	LatestEventVersion int32     `json:"latest_event_version"`
 }
 
-func (q *Queries) LoadNewestEvents(ctx context.Context, arg LoadNewestEventsParams) ([]EventStore, error) {
+func (q *Queries) LoadNewestEvents(ctx context.Context, arg LoadNewestEventsParams) ([]Event, error) {
 	rows, err := q.db.QueryContext(ctx, loadNewestEvents, arg.AggregateID, arg.LatestEventVersion)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	items := []EventStore{}
+	items := []Event{}
 	for rows.Next() {
-		var i EventStore
+		var i Event
 		if err := rows.Scan(
 			&i.EventID,
 			&i.AggregateID,
@@ -132,8 +132,8 @@ func (q *Queries) LoadNewestEvents(ctx context.Context, arg LoadNewestEventsPara
 }
 
 const storeEvent = `-- name: StoreEvent :one
-INSERT INTO event_store (aggregate_id, event_type, event_version, event_data, event_time)
-VALUES ($1, $2, COALESCE((SELECT MAX(event_version)+1 FROM event_store WHERE aggregate_id = $1),1), $3, $4) RETURNING event_id, aggregate_id, event_type, event_version, event_data, event_time
+INSERT INTO events (aggregate_id, event_type, event_version, event_data, event_time)
+VALUES ($1, $2, COALESCE((SELECT MAX(event_version)+1 FROM events WHERE aggregate_id = $1),1), $3, $4) RETURNING event_id, aggregate_id, event_type, event_version, event_data, event_time
 `
 
 type StoreEventParams struct {
@@ -143,14 +143,14 @@ type StoreEventParams struct {
 	EventTime   int64           `json:"event_time"`
 }
 
-func (q *Queries) StoreEvent(ctx context.Context, arg StoreEventParams) (EventStore, error) {
+func (q *Queries) StoreEvent(ctx context.Context, arg StoreEventParams) (Event, error) {
 	row := q.db.QueryRowContext(ctx, storeEvent,
 		arg.AggregateID,
 		arg.EventType,
 		arg.EventData,
 		arg.EventTime,
 	)
-	var i EventStore
+	var i Event
 	err := row.Scan(
 		&i.EventID,
 		&i.AggregateID,
