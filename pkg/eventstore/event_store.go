@@ -2,10 +2,10 @@ package eventstore
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/google/uuid"
-	"github.com/jmoiron/sqlx/types"
 )
 
 const loadAllEvents = `-- name: LoadAllEvents :many
@@ -136,10 +136,10 @@ VALUES ($1, $2, COALESCE((SELECT MAX(event_version)+1 FROM %[1]s WHERE aggregate
 `
 
 type StoreEventParams struct {
-	AggregateID uuid.UUID      `json:"aggregate_id"`
-	EventType   string         `json:"event_type"`
-	EventData   types.JSONText `json:"event_data"`
-	EventTime   int64          `json:"event_time"`
+	AggregateID uuid.UUID       `json:"aggregate_id"`
+	EventType   string          `json:"event_type"`
+	EventData   json.RawMessage `json:"event_data"`
+	EventTime   int64           `json:"event_time"`
 }
 
 func (q *queries) StoreEvent(ctx context.Context, arg StoreEventParams) (Event, error) {

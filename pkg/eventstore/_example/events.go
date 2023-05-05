@@ -1,6 +1,13 @@
 package main
 
+import "github.com/google/uuid"
+
 type (
+	// BaseEvent is the base event
+	BaseEvent struct {
+		UserID uuid.UUID `json:"user_id,omitempty"`
+	}
+
 	// UserCreatedEvent is the event that will be stored in the event store
 	UserCreatedEvent struct {
 		Name      string `json:"name,omitempty"`
@@ -27,3 +34,28 @@ type (
 		UpdatedAt int64  `json:"updated_at,omitempty"`
 	}
 )
+
+// EventID returns the id of the event
+func (be BaseEvent) EventID() uuid.UUID {
+	return uuid.Nil
+}
+
+// AggregateID returns the id of the aggregate
+func (be BaseEvent) AggregateID() uuid.UUID {
+	return be.UserID
+}
+
+// EventVersion returns the version of the event
+func (be BaseEvent) EventVersion() int32 {
+	return 0
+}
+
+// EventTime returns the time of the event
+func (be BaseEvent) EventTime() int64 {
+	return 0
+}
+
+// EventData returns the data of the event
+func (be BaseEvent) EventData() []byte {
+	return nil
+}
