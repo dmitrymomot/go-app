@@ -49,7 +49,7 @@ func (es *EventStore) prepare(ctx context.Context) error {
 	if err != nil {
 		return fmt.Errorf("failed to begin transaction: %w", err)
 	}
-	defer tx.Rollback()
+	defer tx.Rollback() // nolint:errcheck
 
 	repo := es.repo.WithTx(tx)
 	if err := repo.CreateEventsTable(ctx); err != nil {
@@ -110,7 +110,7 @@ func (es *EventStore) AppendEvent(ctx context.Context, aggregateID uuid.UUID, ev
 	if err != nil {
 		return Event{}, fmt.Errorf("failed to begin transaction: %w", err)
 	}
-	defer tx.Rollback()
+	defer tx.Rollback() // nolint:errcheck
 
 	repo := es.repo.WithTx(tx)
 
@@ -373,7 +373,7 @@ func (es *EventStore) StoreSnapshot(ctx context.Context, aggregateID uuid.UUID, 
 	if err != nil {
 		return fmt.Errorf("failed to begin transaction: %w", err)
 	}
-	defer tx.Rollback()
+	defer tx.Rollback() // nolint:errcheck
 
 	repo := es.repo.WithTx(tx)
 
@@ -410,7 +410,7 @@ func (es *EventStore) MakeSnapshot(ctx context.Context, aggregateID uuid.UUID, a
 	if err != nil {
 		return fmt.Errorf("failed to begin transaction: %w", err)
 	}
-	defer tx.Rollback()
+	defer tx.Rollback() // nolint:errcheck
 
 	repo := es.repo.WithTx(tx)
 
