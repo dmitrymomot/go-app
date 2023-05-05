@@ -1,9 +1,6 @@
 package eventstore
 
 import (
-	"encoding/json"
-	"time"
-
 	"github.com/google/uuid"
 )
 
@@ -14,20 +11,6 @@ type Event struct {
 	EventVersion int32     `json:"event_version"`
 	EventData    []byte    `json:"event_data"`
 	EventTime    int64     `json:"event_time"`
-}
-
-// NewEvent creates a new event
-func NewEvent(aggregateID uuid.UUID, eventType string, eventData interface{}) Event {
-	data, err := json.Marshal(eventData)
-	if err != nil {
-		// TODO: log error
-	}
-	return Event{
-		AggregateID: aggregateID,
-		EventType:   eventType,
-		EventData:   data,
-		EventTime:   time.Now().UnixNano(),
-	}
 }
 
 type Snapshot struct {
