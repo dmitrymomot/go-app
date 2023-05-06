@@ -1,3 +1,3 @@
 #!/bin/bash
-bin/migrate
+bin/migrate && \
 bin/app
