@@ -50,7 +50,7 @@ func MigrateUp() error {
 // Up runs the application and the database migrations up
 func Up() error {
 	color.Cyan("Starting the database...")
-	if err := sh.RunV("docker-compose", "up", "-d"); err != nil {
+	if err := sh.RunV("docker-compose", "-f deployments/docker-compose.yml", "up", "-d"); err != nil {
 		return err
 	}
 
@@ -67,5 +67,5 @@ func Up() error {
 // Down stops the application and the database
 func Down() error {
 	color.Yellow("Stopping the database and removing all data...")
-	return sh.RunV("docker-compose", "down", "--volumes", "--rmi=local")
+	return sh.RunV("docker-compose", "-f deployments/docker-compose.yml", "down", "--volumes", "--rmi=local")
 }
