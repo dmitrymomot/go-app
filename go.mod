@@ -13,7 +13,7 @@ require (
 	github.com/lib/pq v1.10.9
 	github.com/magefile/mage v1.14.0
 	github.com/rubenv/sql-migrate v1.4.0
-	github.com/sirupsen/logrus v1.9.0
+	github.com/sirupsen/logrus v1.9.2
 	golang.org/x/sync v0.2.0
 )
 
@@ -36,10 +36,11 @@ require (
 	github.com/mr-tron/base58 v1.2.0 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/portto/solana-go-sdk v1.23.0 // indirect
-	golang.org/x/net v0.9.0 // indirect
+	golang.org/x/net v0.10.0 // indirect
 	golang.org/x/sys v0.8.0 // indirect
 	golang.org/x/text v0.9.0 // indirect
-	google.golang.org/genproto v0.0.0-20230410155749-daa745c078e1 // indirect
+	google.golang.org/genproto v0.0.0-20230525234025-438c736192d0 // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20230530153820-e85fd2cbaebc // indirect
 	google.golang.org/grpc v1.55.0 // indirect
 	google.golang.org/protobuf v1.30.0 // indirect
 )
