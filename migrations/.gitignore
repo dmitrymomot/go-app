@@ -1,0 +1,7 @@
+*
+!.gitignore
+!readme.md
+!dbconfig.yml
+!seeds
+!seeds/*.sql
+!00000000000000-db_preparing.sql

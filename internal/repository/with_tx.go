@@ -14,6 +14,8 @@ type (
 		Rollback() error
 	}
 
+	// queries implements the TxQuerier interface.
+	// It embeds all the queries from the generated file.
 	queries struct {
 		*Queries // nolint:structcheck // Embed all the queries into the struct
 		db       *sql.DB
