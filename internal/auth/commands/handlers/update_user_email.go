@@ -112,10 +112,16 @@ func UpdateUserEmail(
 
 		// Update user email.
 		if err := txRepo.UpdateUserEmailByID(ctx, auth_repository.UpdateUserEmailByIDParams{
-			ID:    user.ID,
-			Email: verification.Email,
+			ID:       user.ID,
+			Email:    verification.Email,
+			Verified: true,
 		}); err != nil {
 			return fmt.Errorf("failed to update user email: %w", err)
+		}
+
+		// Delete user verification.
+		if err := txRepo.DeleteVerificationByID(ctx, verification.ID); err != nil {
+			return fmt.Errorf("failed to delete verification: %w", err)
 		}
 
 		if err := txRepo.Commit(); err != nil {

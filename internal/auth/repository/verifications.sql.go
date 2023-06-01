@@ -21,6 +21,16 @@ func (q *Queries) CleanUpVerifications(ctx context.Context) error {
 	return err
 }
 
+const deleteVerificationByID = `-- name: DeleteVerificationByID :exec
+DELETE FROM verifications WHERE id = $1
+`
+
+// Delete a verification by ID
+func (q *Queries) DeleteVerificationByID(ctx context.Context, id uuid.UUID) error {
+	_, err := q.exec(ctx, q.deleteVerificationByIDStmt, deleteVerificationByID, id)
+	return err
+}
+
 const findVerificationByID = `-- name: FindVerificationByID :one
 SELECT id, user_id, verification_type, email, otp_hash, created_at, expires_at FROM verifications WHERE id = $1 AND expires_at > now()
 `

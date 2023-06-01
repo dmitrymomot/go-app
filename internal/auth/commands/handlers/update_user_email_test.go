@@ -113,6 +113,7 @@ func TestUpdateUserEmail(t *testing.T) {
 		repo.On("BeginTx", mock.Anything, mock.Anything).Return(repo, nil).Once()
 		repo.On("Commit", mock.Anything).Return(nil).Once()
 		repo.On("Rollback", mock.Anything).Return(nil).Once()
+		repo.On("DeleteVerificationByID", mock.Anything, vid).Return(nil).Once()
 
 		repo.On("UpdateUserEmailByID", mock.Anything, auth_repository.UpdateUserEmailByIDParams{
 			ID:    uid,

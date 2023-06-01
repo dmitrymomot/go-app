@@ -78,6 +78,7 @@ func TestDeleteUser(t *testing.T) {
 		repo.On("Commit", mock.Anything).Return(nil).Once()
 		repo.On("Rollback", mock.Anything).Return(nil).Once()
 		repo.On("DeleteUserByID", mock.Anything, uid).Return(nil).Once()
+		repo.On("DeleteVerificationByID", mock.Anything, vid).Return(nil).Once()
 
 		return repo
 	}

@@ -110,6 +110,11 @@ func DeleteUser(
 			return fmt.Errorf("failed to delete user: %w", err)
 		}
 
+		// Delete user verification.
+		if err := txRepo.DeleteVerificationByID(ctx, verification.ID); err != nil {
+			return fmt.Errorf("failed to delete verification: %w", err)
+		}
+
 		// Commit transaction.
 		if err := txRepo.Commit(); err != nil {
 			return fmt.Errorf("failed to commit transaction: %w", err)

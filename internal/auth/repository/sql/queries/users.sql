@@ -12,7 +12,11 @@ SELECT * FROM users WHERE id = $1;
 
 -- name: UpdateUserEmailByID :exec
 -- Update a user's email by ID
-UPDATE users SET email = $1 WHERE id = $2;
+UPDATE users SET email = $1, verified = $3 WHERE id = $2;
+
+-- name: UpdateUserVerificationStatusByID :exec
+-- Update a user's verification status by ID
+UPDATE users SET verified = $1 WHERE id = $2;
 
 -- name: DeleteUserByID :exec
 -- Delete a user by ID

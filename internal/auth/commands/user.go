@@ -2,11 +2,6 @@ package commands
 
 import "github.com/google/uuid"
 
-// RequestAuthUser is a command for requesting user authentication link.
-type RequestAuthUser struct {
-	Email string `json:"email"`
-}
-
 // RequestToUpdateUserEmail is a command for requesting user email update.
 type RequestToUpdateUserEmail struct {
 	UserID uuid.UUID `json:"user_id"`

@@ -70,16 +70,32 @@ func (q *Queries) FindUserByID(ctx context.Context, id uuid.UUID) (User, error) 
 }
 
 const updateUserEmailByID = `-- name: UpdateUserEmailByID :exec
-UPDATE users SET email = $1 WHERE id = $2
+UPDATE users SET email = $1, verified = $3 WHERE id = $2
 `
 
 type UpdateUserEmailByIDParams struct {
-	Email string    `json:"email"`
-	ID    uuid.UUID `json:"id"`
+	Email    string    `json:"email"`
+	ID       uuid.UUID `json:"id"`
+	Verified bool      `json:"verified"`
 }
 
 // Update a user's email by ID
 func (q *Queries) UpdateUserEmailByID(ctx context.Context, arg UpdateUserEmailByIDParams) error {
-	_, err := q.exec(ctx, q.updateUserEmailByIDStmt, updateUserEmailByID, arg.Email, arg.ID)
+	_, err := q.exec(ctx, q.updateUserEmailByIDStmt, updateUserEmailByID, arg.Email, arg.ID, arg.Verified)
+	return err
+}
+
+const updateUserVerificationStatusByID = `-- name: UpdateUserVerificationStatusByID :exec
+UPDATE users SET verified = $1 WHERE id = $2
+`
+
+type UpdateUserVerificationStatusByIDParams struct {
+	Verified bool      `json:"verified"`
+	ID       uuid.UUID `json:"id"`
+}
+
+// Update a user's verification status by ID
+func (q *Queries) UpdateUserVerificationStatusByID(ctx context.Context, arg UpdateUserVerificationStatusByIDParams) error {
+	_, err := q.exec(ctx, q.updateUserVerificationStatusByIDStmt, updateUserVerificationStatusByID, arg.Verified, arg.ID)
 	return err
 }

@@ -167,6 +167,20 @@ func (_m *TxQuerier) DeleteUserByID(ctx context.Context, id uuid.UUID) error {
 	return r0
 }
 
+// DeleteVerificationByID provides a mock function with given fields: ctx, id
+func (_m *TxQuerier) DeleteVerificationByID(ctx context.Context, id uuid.UUID) error {
+	ret := _m.Called(ctx, id)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID) error); ok {
+		r0 = rf(ctx, id)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // FindTokenByAccessTokenID provides a mock function with given fields: ctx, accessTokenID
 func (_m *TxQuerier) FindTokenByAccessTokenID(ctx context.Context, accessTokenID uuid.UUID) (auth_repository.Token, error) {
 	ret := _m.Called(ctx, accessTokenID)
@@ -361,6 +375,20 @@ func (_m *TxQuerier) UpdateUserEmailByID(ctx context.Context, arg auth_repositor
 
 	var r0 error
 	if rf, ok := ret.Get(0).(func(context.Context, auth_repository.UpdateUserEmailByIDParams) error); ok {
+		r0 = rf(ctx, arg)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// UpdateUserVerificationStatusByID provides a mock function with given fields: ctx, arg
+func (_m *TxQuerier) UpdateUserVerificationStatusByID(ctx context.Context, arg auth_repository.UpdateUserVerificationStatusByIDParams) error {
+	ret := _m.Called(ctx, arg)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, auth_repository.UpdateUserVerificationStatusByIDParams) error); ok {
 		r0 = rf(ctx, arg)
 	} else {
 		r0 = ret.Error(0)

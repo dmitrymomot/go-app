@@ -3,6 +3,7 @@ package command_handlers
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/dmitrymomot/go-app/internal/auth/commands"
 	"github.com/dmitrymomot/go-app/internal/auth/dto"
@@ -65,6 +66,61 @@ func RequestAuthUser(repo auth_repository.TxQuerier, sender userEmailVerificatio
 			return fmt.Errorf("failed to send auth email: %w", err)
 		}
 
+		if err := txRepo.Commit(); err != nil {
+			return fmt.Errorf("failed to commit transaction: %w", err)
+		}
+
+		return nil
+	}
+}
+
+// AuthUser is a handler for AuthUser command.
+func AuthUser(repo auth_repository.TxQuerier) func(ctx context.Context, arg commands.AuthUser) error {
+	return func(ctx context.Context, arg commands.AuthUser) error {
+		txRepo, err := repo.BeginTx(ctx)
+		if err != nil {
+			return fmt.Errorf("failed to begin transaction: %w", err)
+		}
+		defer txRepo.Rollback() // nolint: errcheck
+
+		// Find user verification by id.
+		verification, err := txRepo.FindVerificationByID(ctx, arg.VerificationID)
+		if err != nil {
+			return fmt.Errorf("failed to find verification by id: %w", err)
+		}
+
+		// Check verification type.
+		if verification.VerificationType != string(dto.VerificationTypeAuth) {
+			return fmt.Errorf("invalid verification type")
+		}
+		// Check verification expiration.
+		if verification.ExpiresAt.Before(time.Now()) {
+			return fmt.Errorf("otp is expired")
+		}
+		// Check OTP.
+		if err := bcrypt.CompareHashAndPassword(verification.OtpHash, []byte(arg.OTP)); err != nil {
+			return fmt.Errorf("invalid OTP")
+		}
+
+		// Update user verification.
+		if err := txRepo.UpdateUserVerificationStatusByID(ctx, auth_repository.UpdateUserVerificationStatusByIDParams{
+			ID:       verification.UserID,
+			Verified: true,
+		}); err != nil {
+			return fmt.Errorf("failed to update user verification status: %w", err)
+		}
+
+		// Delete user verification.
+		if err := txRepo.DeleteVerificationByID(ctx, verification.ID); err != nil {
+			return fmt.Errorf("failed to delete verification: %w", err)
+		}
+
+		// TODO: Create a new token.
+		if err := txRepo.StoreToken(ctx, auth_repository.StoreTokenParams{}); err != nil {
+			return fmt.Errorf("failed to store token: %w", err)
+		}
+
+		// Commit transaction.
 		if err := txRepo.Commit(); err != nil {
 			return fmt.Errorf("failed to commit transaction: %w", err)
 		}

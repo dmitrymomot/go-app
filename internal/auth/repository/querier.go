@@ -25,6 +25,8 @@ type Querier interface {
 	DeleteTokensByUserID(ctx context.Context, userID uuid.UUID) error
 	// Delete a user by ID
 	DeleteUserByID(ctx context.Context, id uuid.UUID) error
+	// Delete a verification by ID
+	DeleteVerificationByID(ctx context.Context, id uuid.UUID) error
 	// Find a token by access token ID
 	FindTokenByAccessTokenID(ctx context.Context, accessTokenID uuid.UUID) (Token, error)
 	// Find a token by refresh token ID
@@ -43,6 +45,8 @@ type Querier interface {
 	StoreToken(ctx context.Context, arg StoreTokenParams) error
 	// Update a user's email by ID
 	UpdateUserEmailByID(ctx context.Context, arg UpdateUserEmailByIDParams) error
+	// Update a user's verification status by ID
+	UpdateUserVerificationStatusByID(ctx context.Context, arg UpdateUserVerificationStatusByIDParams) error
 }
 
 var _ Querier = (*Queries)(nil)

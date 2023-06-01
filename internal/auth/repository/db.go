@@ -45,6 +45,9 @@ func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 	if q.deleteUserByIDStmt, err = db.PrepareContext(ctx, deleteUserByID); err != nil {
 		return nil, fmt.Errorf("error preparing query DeleteUserByID: %w", err)
 	}
+	if q.deleteVerificationByIDStmt, err = db.PrepareContext(ctx, deleteVerificationByID); err != nil {
+		return nil, fmt.Errorf("error preparing query DeleteVerificationByID: %w", err)
+	}
 	if q.findTokenByAccessTokenIDStmt, err = db.PrepareContext(ctx, findTokenByAccessTokenID); err != nil {
 		return nil, fmt.Errorf("error preparing query FindTokenByAccessTokenID: %w", err)
 	}
@@ -71,6 +74,9 @@ func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 	}
 	if q.updateUserEmailByIDStmt, err = db.PrepareContext(ctx, updateUserEmailByID); err != nil {
 		return nil, fmt.Errorf("error preparing query UpdateUserEmailByID: %w", err)
+	}
+	if q.updateUserVerificationStatusByIDStmt, err = db.PrepareContext(ctx, updateUserVerificationStatusByID); err != nil {
+		return nil, fmt.Errorf("error preparing query UpdateUserVerificationStatusByID: %w", err)
 	}
 	return &q, nil
 }
@@ -110,6 +116,11 @@ func (q *Queries) Close() error {
 	if q.deleteUserByIDStmt != nil {
 		if cerr := q.deleteUserByIDStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing deleteUserByIDStmt: %w", cerr)
+		}
+	}
+	if q.deleteVerificationByIDStmt != nil {
+		if cerr := q.deleteVerificationByIDStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing deleteVerificationByIDStmt: %w", cerr)
 		}
 	}
 	if q.findTokenByAccessTokenIDStmt != nil {
@@ -157,6 +168,11 @@ func (q *Queries) Close() error {
 			err = fmt.Errorf("error closing updateUserEmailByIDStmt: %w", cerr)
 		}
 	}
+	if q.updateUserVerificationStatusByIDStmt != nil {
+		if cerr := q.updateUserVerificationStatusByIDStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing updateUserVerificationStatusByIDStmt: %w", cerr)
+		}
+	}
 	return err
 }
 
@@ -194,45 +210,49 @@ func (q *Queries) queryRow(ctx context.Context, stmt *sql.Stmt, query string, ar
 }
 
 type Queries struct {
-	db                              DBTX
-	tx                              *sql.Tx
-	cleanUpTokensStmt               *sql.Stmt
-	cleanUpVerificationsStmt        *sql.Stmt
-	createUserStmt                  *sql.Stmt
-	deleteTokenByAccessTokenIDStmt  *sql.Stmt
-	deleteTokenByRefreshTokenIDStmt *sql.Stmt
-	deleteTokensByUserIDStmt        *sql.Stmt
-	deleteUserByIDStmt              *sql.Stmt
-	findTokenByAccessTokenIDStmt    *sql.Stmt
-	findTokenByRefreshTokenIDStmt   *sql.Stmt
-	findUserByEmailStmt             *sql.Stmt
-	findUserByIDStmt                *sql.Stmt
-	findVerificationByIDStmt        *sql.Stmt
-	refreshTokenStmt                *sql.Stmt
-	storeOrUpdateVerificationStmt   *sql.Stmt
-	storeTokenStmt                  *sql.Stmt
-	updateUserEmailByIDStmt         *sql.Stmt
+	db                                   DBTX
+	tx                                   *sql.Tx
+	cleanUpTokensStmt                    *sql.Stmt
+	cleanUpVerificationsStmt             *sql.Stmt
+	createUserStmt                       *sql.Stmt
+	deleteTokenByAccessTokenIDStmt       *sql.Stmt
+	deleteTokenByRefreshTokenIDStmt      *sql.Stmt
+	deleteTokensByUserIDStmt             *sql.Stmt
+	deleteUserByIDStmt                   *sql.Stmt
+	deleteVerificationByIDStmt           *sql.Stmt
+	findTokenByAccessTokenIDStmt         *sql.Stmt
+	findTokenByRefreshTokenIDStmt        *sql.Stmt
+	findUserByEmailStmt                  *sql.Stmt
+	findUserByIDStmt                     *sql.Stmt
+	findVerificationByIDStmt             *sql.Stmt
+	refreshTokenStmt                     *sql.Stmt
+	storeOrUpdateVerificationStmt        *sql.Stmt
+	storeTokenStmt                       *sql.Stmt
+	updateUserEmailByIDStmt              *sql.Stmt
+	updateUserVerificationStatusByIDStmt *sql.Stmt
 }
 
 func (q *Queries) WithTx(tx *sql.Tx) *Queries {
 	return &Queries{
-		db:                              tx,
-		tx:                              tx,
-		cleanUpTokensStmt:               q.cleanUpTokensStmt,
-		cleanUpVerificationsStmt:        q.cleanUpVerificationsStmt,
-		createUserStmt:                  q.createUserStmt,
-		deleteTokenByAccessTokenIDStmt:  q.deleteTokenByAccessTokenIDStmt,
-		deleteTokenByRefreshTokenIDStmt: q.deleteTokenByRefreshTokenIDStmt,
-		deleteTokensByUserIDStmt:        q.deleteTokensByUserIDStmt,
-		deleteUserByIDStmt:              q.deleteUserByIDStmt,
-		findTokenByAccessTokenIDStmt:    q.findTokenByAccessTokenIDStmt,
-		findTokenByRefreshTokenIDStmt:   q.findTokenByRefreshTokenIDStmt,
-		findUserByEmailStmt:             q.findUserByEmailStmt,
-		findUserByIDStmt:                q.findUserByIDStmt,
-		findVerificationByIDStmt:        q.findVerificationByIDStmt,
-		refreshTokenStmt:                q.refreshTokenStmt,
-		storeOrUpdateVerificationStmt:   q.storeOrUpdateVerificationStmt,
-		storeTokenStmt:                  q.storeTokenStmt,
-		updateUserEmailByIDStmt:         q.updateUserEmailByIDStmt,
+		db:                                   tx,
+		tx:                                   tx,
+		cleanUpTokensStmt:                    q.cleanUpTokensStmt,
+		cleanUpVerificationsStmt:             q.cleanUpVerificationsStmt,
+		createUserStmt:                       q.createUserStmt,
+		deleteTokenByAccessTokenIDStmt:       q.deleteTokenByAccessTokenIDStmt,
+		deleteTokenByRefreshTokenIDStmt:      q.deleteTokenByRefreshTokenIDStmt,
+		deleteTokensByUserIDStmt:             q.deleteTokensByUserIDStmt,
+		deleteUserByIDStmt:                   q.deleteUserByIDStmt,
+		deleteVerificationByIDStmt:           q.deleteVerificationByIDStmt,
+		findTokenByAccessTokenIDStmt:         q.findTokenByAccessTokenIDStmt,
+		findTokenByRefreshTokenIDStmt:        q.findTokenByRefreshTokenIDStmt,
+		findUserByEmailStmt:                  q.findUserByEmailStmt,
+		findUserByIDStmt:                     q.findUserByIDStmt,
+		findVerificationByIDStmt:             q.findVerificationByIDStmt,
+		refreshTokenStmt:                     q.refreshTokenStmt,
+		storeOrUpdateVerificationStmt:        q.storeOrUpdateVerificationStmt,
+		storeTokenStmt:                       q.storeTokenStmt,
+		updateUserEmailByIDStmt:              q.updateUserEmailByIDStmt,
+		updateUserVerificationStatusByIDStmt: q.updateUserVerificationStatusByIDStmt,
 	}
 }
