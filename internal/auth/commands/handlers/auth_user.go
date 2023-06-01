@@ -57,7 +57,7 @@ func RequestAuthUser(repo auth_repository.TxQuerier, sender userEmailVerificatio
 			OtpHash:          otpHash,
 		})
 		if err != nil {
-			return fmt.Errorf("failed to store or update verification: %w", err)
+			return fmt.Errorf("failed to store verification: %w", err)
 		}
 
 		// Send auth email.
