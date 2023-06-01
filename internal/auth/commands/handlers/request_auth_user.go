@@ -7,21 +7,20 @@ import (
 	"github.com/dmitrymomot/go-app/internal/auth/commands"
 	"github.com/dmitrymomot/go-app/internal/auth/dto"
 	auth_repository "github.com/dmitrymomot/go-app/internal/auth/repository"
+	"github.com/dmitrymomot/go-utils"
 	"github.com/dmitrymomot/random"
 	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
 )
 
-type (
-	// authUserSender is an interface for user sender.
-	authUserSender interface {
-		SendEmail(ctx context.Context, email string, verificationID uuid.UUID, otp string) error
-	}
-)
-
 // RequestAuthUser is a handler for RequestAuthUser command.
-func RequestAuthUser(repo auth_repository.TxQuerier, sender authUserSender) func(ctx context.Context, arg commands.RequestAuthUser) error {
+func RequestAuthUser(repo auth_repository.TxQuerier, sender userEmailVerificationSender) func(ctx context.Context, arg commands.RequestAuthUser) error {
 	return func(ctx context.Context, arg commands.RequestAuthUser) error {
+		email, err := utils.SanitizeEmail(arg.Email)
+		if err != nil {
+			return fmt.Errorf("invalid email address: %w", err)
+		}
+
 		txRepo, err := repo.BeginTx(ctx)
 		if err != nil {
 			return fmt.Errorf("failed to begin transaction: %w", err)
@@ -29,7 +28,7 @@ func RequestAuthUser(repo auth_repository.TxQuerier, sender authUserSender) func
 		defer txRepo.Rollback() // nolint: errcheck
 
 		// Find user by email or create new one.
-		user, err := txRepo.FindUserByEmail(ctx, arg.Email)
+		user, err := txRepo.FindUserByEmail(ctx, email)
 		if err != nil {
 			if !auth_repository.IsNotFoundError(err) {
 				return fmt.Errorf("failed to find user by email: %w", err)
@@ -37,7 +36,7 @@ func RequestAuthUser(repo auth_repository.TxQuerier, sender authUserSender) func
 		}
 		id := user.ID
 		if user.ID == uuid.Nil {
-			id, err = txRepo.CreateUser(ctx, arg.Email)
+			id, err = txRepo.CreateUser(ctx, email)
 			if err != nil {
 				return fmt.Errorf("failed to create user: %w", err)
 			}
@@ -53,8 +52,8 @@ func RequestAuthUser(repo auth_repository.TxQuerier, sender authUserSender) func
 		// Store or update user verification.
 		verificationID, err := txRepo.StoreOrUpdateVerification(ctx, auth_repository.StoreOrUpdateVerificationParams{
 			UserID:           id,
-			VerificationType: string(dto.VerificationTypeEmail),
-			Email:            arg.Email,
+			VerificationType: string(dto.VerificationTypeAuth),
+			Email:            email,
 			OtpHash:          otpHash,
 		})
 		if err != nil {
@@ -62,7 +61,7 @@ func RequestAuthUser(repo auth_repository.TxQuerier, sender authUserSender) func
 		}
 
 		// Send auth email.
-		if err := sender.SendEmail(ctx, arg.Email, verificationID, otp); err != nil {
+		if err := sender.SendEmail(ctx, email, verificationID, otp); err != nil {
 			return fmt.Errorf("failed to send auth email: %w", err)
 		}
 

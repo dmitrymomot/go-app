@@ -28,7 +28,7 @@ func TestRequestAuthUser_NewUser(t *testing.T) {
 	repo.On("CreateUser", mock.Anything, email).Return(uid, nil).Once()
 	repo.On("StoreOrUpdateVerification", mock.Anything, mock.Anything).Return(vid, nil).Once()
 
-	mailSender := &mocks_mail.AuthUserEmailSender{}
+	mailSender := &mocks_mail.UserEmailVerificationSender{}
 	mailSender.On("SendEmail", mock.Anything, email, vid, mock.Anything).Return(nil).Once()
 
 	fn := command_handlers.RequestAuthUser(repo, mailSender)
@@ -52,7 +52,7 @@ func TestRequestAuthUser_ExistedUser(t *testing.T) {
 	repo.On("FindUserByEmail", mock.Anything, email).Return(user, sql.ErrNoRows).Once()
 	repo.On("StoreOrUpdateVerification", mock.Anything, mock.Anything).Return(vid, nil).Once()
 
-	mailSender := &mocks_mail.AuthUserEmailSender{}
+	mailSender := &mocks_mail.UserEmailVerificationSender{}
 	mailSender.On("SendEmail", mock.Anything, email, vid, mock.Anything).Return(nil).Once()
 
 	fn := command_handlers.RequestAuthUser(repo, mailSender)
@@ -76,7 +76,7 @@ func TestRequestAuthUser_FailedToSendEmail(t *testing.T) {
 	repo.On("FindUserByEmail", mock.Anything, email).Return(user, sql.ErrNoRows).Once()
 	repo.On("StoreOrUpdateVerification", mock.Anything, mock.Anything).Return(vid, nil).Once()
 
-	mailSender := &mocks_mail.AuthUserEmailSender{}
+	mailSender := &mocks_mail.UserEmailVerificationSender{}
 	sendEmailErr := fmt.Errorf("something went wrong")
 	mailSender.On("SendEmail", mock.Anything, email, vid, mock.Anything).Return(sendEmailErr).Once()
 

@@ -7,19 +7,25 @@ type RequestAuthUser struct {
 	Email string `json:"email"`
 }
 
-// UpdateUserEmail is a command for updating user email.
-type UpdateUserEmail struct {
+// RequestToUpdateUserEmail is a command for requesting user email update.
+type RequestToUpdateUserEmail struct {
 	UserID uuid.UUID `json:"user_id"`
 	Email  string    `json:"email"`
 }
 
-// UpdateUserVerified is a command for updating user verified status.
-type UpdateUserVerified struct {
-	UserID   uuid.UUID `json:"user_id"`
-	Verified bool      `json:"verified"`
+// UpdateUserEmail is a command for updating user email.
+type UpdateUserEmail struct {
+	VerificationID uuid.UUID `json:"verification_id"`
+	OTP            string    `json:"otp"`
+}
+
+// RequestToDeleteUser is a command for requesting user deletion.
+type RequestToDeleteUser struct {
+	UserID uuid.UUID `json:"user_id"`
 }
 
 // DeleteUser is a command for deleting user.
 type DeleteUser struct {
-	UserID uuid.UUID `json:"user_id"`
+	VerificationID uuid.UUID `json:"verification_id"`
+	OTP            string    `json:"otp"`
 }
