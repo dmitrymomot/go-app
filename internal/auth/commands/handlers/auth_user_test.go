@@ -39,8 +39,9 @@ func TestRequestAuthUser(t *testing.T) {
 		repo.On("StoreOrUpdateVerification", mock.Anything, mock.Anything).Return(vid, nil).Once()
 
 		fn := command_handlers.RequestAuthUser(repo, mailSender)
-		err := fn(context.Background(), commands.RequestAuthUser{Email: email})
+		res, err := fn(context.Background(), commands.RequestAuthUser{Email: email})
 		require.NoError(t, err)
+		require.Equal(t, vid, res.ID)
 	})
 
 	t.Run("existing user", func(t *testing.T) {
@@ -53,8 +54,9 @@ func TestRequestAuthUser(t *testing.T) {
 		repo.On("StoreOrUpdateVerification", mock.Anything, mock.Anything).Return(vid, nil).Once()
 
 		fn := command_handlers.RequestAuthUser(repo, mailSender)
-		err := fn(context.Background(), commands.RequestAuthUser{Email: email})
+		res, err := fn(context.Background(), commands.RequestAuthUser{Email: email})
 		require.NoError(t, err)
+		require.Equal(t, vid, res.ID)
 	})
 
 	t.Run("failed to create user", func(t *testing.T) {
@@ -64,7 +66,7 @@ func TestRequestAuthUser(t *testing.T) {
 		repo.On("CreateUser", mock.Anything, email).Return(uuid.Nil, createUserErr).Once()
 
 		fn := command_handlers.RequestAuthUser(repo, mailSender)
-		err := fn(context.Background(), commands.RequestAuthUser{Email: email})
+		_, err := fn(context.Background(), commands.RequestAuthUser{Email: email})
 		require.Error(t, err)
 		require.EqualError(t, err, fmt.Sprintf("failed to create user: %s", createUserErr.Error()))
 	})
@@ -77,7 +79,7 @@ func TestRequestAuthUser(t *testing.T) {
 		repo.On("StoreOrUpdateVerification", mock.Anything, mock.Anything).Return(uuid.Nil, storeVerificationErr).Once()
 
 		fn := command_handlers.RequestAuthUser(repo, mailSender)
-		err := fn(context.Background(), commands.RequestAuthUser{Email: email})
+		_, err := fn(context.Background(), commands.RequestAuthUser{Email: email})
 		require.Error(t, err)
 		require.EqualError(t, err, fmt.Sprintf("failed to store verification: %s", storeVerificationErr.Error()))
 	})
@@ -88,7 +90,7 @@ func TestRequestAuthUser(t *testing.T) {
 		repo.On("BeginTx", mock.Anything, mock.Anything).Return(nil, beginTxErr).Once()
 
 		fn := command_handlers.RequestAuthUser(repo, mailSender)
-		err := fn(context.Background(), commands.RequestAuthUser{Email: email})
+		_, err := fn(context.Background(), commands.RequestAuthUser{Email: email})
 		require.Error(t, err)
 		require.EqualError(t, err, fmt.Sprintf("failed to begin transaction: %s", beginTxErr.Error()))
 	})
@@ -104,7 +106,7 @@ func TestRequestAuthUser(t *testing.T) {
 		mailSender.On("SendEmail", mock.Anything, email, vid, mock.Anything).Return(sendEmailErr)
 
 		fn := command_handlers.RequestAuthUser(repo, mailSender)
-		err := fn(context.Background(), commands.RequestAuthUser{Email: email})
+		_, err := fn(context.Background(), commands.RequestAuthUser{Email: email})
 		require.Error(t, err)
 		require.EqualError(t, err, fmt.Sprintf("failed to send auth email: %s", sendEmailErr.Error()))
 	})
