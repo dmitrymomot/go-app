@@ -205,6 +205,30 @@ func (_m *TxQuerier) FindTokenByAccessTokenID(ctx context.Context, accessTokenID
 	return r0, r1
 }
 
+// FindTokenByID provides a mock function with given fields: ctx, id
+func (_m *TxQuerier) FindTokenByID(ctx context.Context, id uuid.UUID) (auth_repository.Token, error) {
+	ret := _m.Called(ctx, id)
+
+	var r0 auth_repository.Token
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID) (auth_repository.Token, error)); ok {
+		return rf(ctx, id)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID) auth_repository.Token); ok {
+		r0 = rf(ctx, id)
+	} else {
+		r0 = ret.Get(0).(auth_repository.Token)
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, uuid.UUID) error); ok {
+		r1 = rf(ctx, id)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // FindTokenByRefreshTokenID provides a mock function with given fields: ctx, refreshTokenID
 func (_m *TxQuerier) FindTokenByRefreshTokenID(ctx context.Context, refreshTokenID uuid.UUID) (auth_repository.Token, error) {
 	ret := _m.Called(ctx, refreshTokenID)

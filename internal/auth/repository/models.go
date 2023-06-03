@@ -13,6 +13,7 @@ import (
 )
 
 type Token struct {
+	ID               uuid.UUID             `json:"id"`
 	UserID           uuid.UUID             `json:"user_id"`
 	AccessTokenID    uuid.UUID             `json:"access_token_id"`
 	AccessExpiresAt  time.Time             `json:"access_expires_at"`

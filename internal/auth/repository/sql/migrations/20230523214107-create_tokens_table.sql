@@ -2,6 +2,7 @@
 -- +migrate Up
 -- +migrate StatementBegin
 CREATE TABLE IF NOT EXISTS tokens (
+    id UUID PRIMARY KEY,
     user_id UUID NOT NULL REFERENCES users (id) ON DELETE CASCADE,
     access_token_id UUID NOT NULL,
     access_expires_at TIMESTAMP NOT NULL DEFAULT NOW() + INTERVAL '2 hours',

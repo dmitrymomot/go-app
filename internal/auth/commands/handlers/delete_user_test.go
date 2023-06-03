@@ -43,11 +43,10 @@ func TestRequestToDeleteUser(t *testing.T) {
 		}, nil).Once()
 
 		fn := command_handlers.RequestToDeleteUser(repo, mailSender)
-		resp, err := fn(context.Background(), commands.RequestToDeleteUser{
+		err := fn(context.Background(), commands.RequestToDeleteUser{
 			UserID: uid,
 		})
 		require.NoError(t, err)
-		require.Equal(t, vid, resp.ID)
 	})
 
 	t.Run("user not found", func(t *testing.T) {
@@ -55,7 +54,7 @@ func TestRequestToDeleteUser(t *testing.T) {
 		repo.On("FindUserByID", mock.Anything, uid).Return(auth_repository.User{}, sql.ErrNoRows).Once()
 
 		fn := command_handlers.RequestToDeleteUser(repo, mailSender)
-		_, err := fn(context.Background(), commands.RequestToDeleteUser{
+		err := fn(context.Background(), commands.RequestToDeleteUser{
 			UserID: uid,
 		})
 		require.Error(t, err)
@@ -101,12 +100,11 @@ func TestDeleteUser(t *testing.T) {
 		}, nil).Once()
 
 		fn := command_handlers.DeleteUser(repo)
-		resp, err := fn(context.Background(), commands.DeleteUser{
+		err := fn(context.Background(), commands.DeleteUser{
 			VerificationID: vid,
 			OTP:            otp,
 		})
 		require.NoError(t, err)
-		require.Equal(t, uid, resp.ID)
 	})
 
 	t.Run("user not found", func(t *testing.T) {
@@ -122,7 +120,7 @@ func TestDeleteUser(t *testing.T) {
 		repo.On("FindUserByID", mock.Anything, uid).Return(auth_repository.User{}, sql.ErrNoRows).Once()
 
 		fn := command_handlers.DeleteUser(repo)
-		_, err := fn(context.Background(), commands.DeleteUser{
+		err := fn(context.Background(), commands.DeleteUser{
 			VerificationID: vid,
 			OTP:            otp,
 		})
@@ -141,11 +139,11 @@ func TestDeleteUser(t *testing.T) {
 		}, nil).Once()
 
 		fn := command_handlers.DeleteUser(repo)
-		_, err := fn(context.Background(), commands.DeleteUser{
+		err := fn(context.Background(), commands.DeleteUser{
 			VerificationID: vid,
 			OTP:            otp,
 		})
 		require.Error(t, err)
-		require.EqualError(t, err, "otp is expired")
+		require.ErrorIs(t, err, command_handlers.ErrVerificationExpired)
 	})
 }

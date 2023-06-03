@@ -1,8 +1,12 @@
 -- name: StoreToken :exec
 -- Store a token
-INSERT INTO tokens (user_id, access_token_id, refresh_token_id, metadata) VALUES (
-    @user_id, @access_token_id, @refresh_token_id, @metadata::json
+INSERT INTO tokens (id, user_id, access_token_id, refresh_token_id, metadata) VALUES (
+    @id, @user_id, @access_token_id, @refresh_token_id, @metadata::json
 ) RETURNING *;
+
+-- name: FindTokenByID :one
+-- Find a token by ID
+SELECT * FROM tokens WHERE id = @id AND refresh_expires_at > now();
 
 -- name: FindTokenByAccessTokenID :one
 -- Find a token by access token ID

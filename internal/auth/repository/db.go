@@ -51,6 +51,9 @@ func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 	if q.findTokenByAccessTokenIDStmt, err = db.PrepareContext(ctx, findTokenByAccessTokenID); err != nil {
 		return nil, fmt.Errorf("error preparing query FindTokenByAccessTokenID: %w", err)
 	}
+	if q.findTokenByIDStmt, err = db.PrepareContext(ctx, findTokenByID); err != nil {
+		return nil, fmt.Errorf("error preparing query FindTokenByID: %w", err)
+	}
 	if q.findTokenByRefreshTokenIDStmt, err = db.PrepareContext(ctx, findTokenByRefreshTokenID); err != nil {
 		return nil, fmt.Errorf("error preparing query FindTokenByRefreshTokenID: %w", err)
 	}
@@ -126,6 +129,11 @@ func (q *Queries) Close() error {
 	if q.findTokenByAccessTokenIDStmt != nil {
 		if cerr := q.findTokenByAccessTokenIDStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing findTokenByAccessTokenIDStmt: %w", cerr)
+		}
+	}
+	if q.findTokenByIDStmt != nil {
+		if cerr := q.findTokenByIDStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing findTokenByIDStmt: %w", cerr)
 		}
 	}
 	if q.findTokenByRefreshTokenIDStmt != nil {
@@ -221,6 +229,7 @@ type Queries struct {
 	deleteUserByIDStmt                   *sql.Stmt
 	deleteVerificationByIDStmt           *sql.Stmt
 	findTokenByAccessTokenIDStmt         *sql.Stmt
+	findTokenByIDStmt                    *sql.Stmt
 	findTokenByRefreshTokenIDStmt        *sql.Stmt
 	findUserByEmailStmt                  *sql.Stmt
 	findUserByIDStmt                     *sql.Stmt
@@ -245,6 +254,7 @@ func (q *Queries) WithTx(tx *sql.Tx) *Queries {
 		deleteUserByIDStmt:                   q.deleteUserByIDStmt,
 		deleteVerificationByIDStmt:           q.deleteVerificationByIDStmt,
 		findTokenByAccessTokenIDStmt:         q.findTokenByAccessTokenIDStmt,
+		findTokenByIDStmt:                    q.findTokenByIDStmt,
 		findTokenByRefreshTokenIDStmt:        q.findTokenByRefreshTokenIDStmt,
 		findUserByEmailStmt:                  q.findUserByEmailStmt,
 		findUserByIDStmt:                     q.findUserByIDStmt,

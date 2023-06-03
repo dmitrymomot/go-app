@@ -41,7 +41,7 @@ func TestRequestToUpdateUserEmail(t *testing.T) {
 		repo.On("FindUserByID", mock.Anything, uid).Return(auth_repository.User{}, sql.ErrNoRows).Once()
 
 		fn := command_handlers.RequestToUpdateUserEmail(repo, mailSender)
-		_, err := fn(context.Background(), commands.RequestToUpdateUserEmail{
+		err := fn(context.Background(), commands.RequestToUpdateUserEmail{
 			UserID: uid,
 			Email:  newEmail,
 		})
@@ -57,7 +57,7 @@ func TestRequestToUpdateUserEmail(t *testing.T) {
 		}, nil).Once()
 
 		fn := command_handlers.RequestToUpdateUserEmail(repo, mailSender)
-		_, err := fn(context.Background(), commands.RequestToUpdateUserEmail{
+		err := fn(context.Background(), commands.RequestToUpdateUserEmail{
 			UserID: uid,
 			Email:  email,
 		})
@@ -73,7 +73,7 @@ func TestRequestToUpdateUserEmail(t *testing.T) {
 		}, nil).Once()
 
 		fn := command_handlers.RequestToUpdateUserEmail(repo, mailSender)
-		_, err := fn(context.Background(), commands.RequestToUpdateUserEmail{
+		err := fn(context.Background(), commands.RequestToUpdateUserEmail{
 			UserID: uid,
 			Email:  "test",
 		})
@@ -89,12 +89,11 @@ func TestRequestToUpdateUserEmail(t *testing.T) {
 		}, nil).Once()
 
 		fn := command_handlers.RequestToUpdateUserEmail(repo, mailSender)
-		resp, err := fn(context.Background(), commands.RequestToUpdateUserEmail{
+		err := fn(context.Background(), commands.RequestToUpdateUserEmail{
 			UserID: uid,
 			Email:  newEmail,
 		})
 		require.NoError(t, err)
-		require.Equal(t, vid, resp.ID)
 	})
 }
 
@@ -142,12 +141,11 @@ func TestUpdateUserEmail(t *testing.T) {
 		}, nil).Once()
 
 		fn := command_handlers.UpdateUserEmail(repo)
-		resp, err := fn(context.Background(), commands.UpdateUserEmail{
+		err := fn(context.Background(), commands.UpdateUserEmail{
 			VerificationID: vid,
 			OTP:            otp,
 		})
 		require.NoError(t, err)
-		require.Equal(t, uid, resp.ID)
 	})
 
 	t.Run("user not found", func(t *testing.T) {
@@ -163,7 +161,7 @@ func TestUpdateUserEmail(t *testing.T) {
 		repo.On("FindUserByID", mock.Anything, uid).Return(auth_repository.User{}, sql.ErrNoRows).Once()
 
 		fn := command_handlers.UpdateUserEmail(repo)
-		_, err := fn(context.Background(), commands.UpdateUserEmail{
+		err := fn(context.Background(), commands.UpdateUserEmail{
 			VerificationID: vid,
 			OTP:            otp,
 		})
@@ -182,11 +180,11 @@ func TestUpdateUserEmail(t *testing.T) {
 		}, nil).Once()
 
 		fn := command_handlers.UpdateUserEmail(repo)
-		_, err := fn(context.Background(), commands.UpdateUserEmail{
+		err := fn(context.Background(), commands.UpdateUserEmail{
 			VerificationID: vid,
 			OTP:            otp,
 		})
 		require.Error(t, err)
-		require.EqualError(t, err, "otp is expired")
+		require.ErrorIs(t, err, command_handlers.ErrVerificationExpired)
 	})
 }

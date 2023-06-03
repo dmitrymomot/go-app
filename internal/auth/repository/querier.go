@@ -29,6 +29,8 @@ type Querier interface {
 	DeleteVerificationByID(ctx context.Context, id uuid.UUID) error
 	// Find a token by access token ID
 	FindTokenByAccessTokenID(ctx context.Context, accessTokenID uuid.UUID) (Token, error)
+	// Find a token by ID
+	FindTokenByID(ctx context.Context, id uuid.UUID) (Token, error)
 	// Find a token by refresh token ID
 	FindTokenByRefreshTokenID(ctx context.Context, refreshTokenID uuid.UUID) (Token, error)
 	// Find a user by email

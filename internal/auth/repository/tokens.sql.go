@@ -54,7 +54,7 @@ func (q *Queries) DeleteTokensByUserID(ctx context.Context, userID uuid.UUID) er
 }
 
 const findTokenByAccessTokenID = `-- name: FindTokenByAccessTokenID :one
-SELECT user_id, access_token_id, access_expires_at, refresh_token_id, refresh_expires_at, created_at, updated_at, metadata FROM tokens WHERE access_token_id = $1 AND access_expires_at > now()
+SELECT id, user_id, access_token_id, access_expires_at, refresh_token_id, refresh_expires_at, created_at, updated_at, metadata FROM tokens WHERE access_token_id = $1 AND access_expires_at > now()
 `
 
 // Find a token by access token ID
@@ -62,6 +62,29 @@ func (q *Queries) FindTokenByAccessTokenID(ctx context.Context, accessTokenID uu
 	row := q.queryRow(ctx, q.findTokenByAccessTokenIDStmt, findTokenByAccessTokenID, accessTokenID)
 	var i Token
 	err := row.Scan(
+		&i.ID,
+		&i.UserID,
+		&i.AccessTokenID,
+		&i.AccessExpiresAt,
+		&i.RefreshTokenID,
+		&i.RefreshExpiresAt,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.Metadata,
+	)
+	return i, err
+}
+
+const findTokenByID = `-- name: FindTokenByID :one
+SELECT id, user_id, access_token_id, access_expires_at, refresh_token_id, refresh_expires_at, created_at, updated_at, metadata FROM tokens WHERE id = $1 AND refresh_expires_at > now()
+`
+
+// Find a token by ID
+func (q *Queries) FindTokenByID(ctx context.Context, id uuid.UUID) (Token, error) {
+	row := q.queryRow(ctx, q.findTokenByIDStmt, findTokenByID, id)
+	var i Token
+	err := row.Scan(
+		&i.ID,
 		&i.UserID,
 		&i.AccessTokenID,
 		&i.AccessExpiresAt,
@@ -75,7 +98,7 @@ func (q *Queries) FindTokenByAccessTokenID(ctx context.Context, accessTokenID uu
 }
 
 const findTokenByRefreshTokenID = `-- name: FindTokenByRefreshTokenID :one
-SELECT user_id, access_token_id, access_expires_at, refresh_token_id, refresh_expires_at, created_at, updated_at, metadata FROM tokens WHERE refresh_token_id = $1 AND refresh_expires_at > now()
+SELECT id, user_id, access_token_id, access_expires_at, refresh_token_id, refresh_expires_at, created_at, updated_at, metadata FROM tokens WHERE refresh_token_id = $1 AND refresh_expires_at > now()
 `
 
 // Find a token by refresh token ID
@@ -83,6 +106,7 @@ func (q *Queries) FindTokenByRefreshTokenID(ctx context.Context, refreshTokenID 
 	row := q.queryRow(ctx, q.findTokenByRefreshTokenIDStmt, findTokenByRefreshTokenID, refreshTokenID)
 	var i Token
 	err := row.Scan(
+		&i.ID,
 		&i.UserID,
 		&i.AccessTokenID,
 		&i.AccessExpiresAt,
@@ -125,12 +149,13 @@ func (q *Queries) RefreshToken(ctx context.Context, arg RefreshTokenParams) erro
 }
 
 const storeToken = `-- name: StoreToken :exec
-INSERT INTO tokens (user_id, access_token_id, refresh_token_id, metadata) VALUES (
-    $1, $2, $3, $4::json
-) RETURNING user_id, access_token_id, access_expires_at, refresh_token_id, refresh_expires_at, created_at, updated_at, metadata
+INSERT INTO tokens (id, user_id, access_token_id, refresh_token_id, metadata) VALUES (
+    $1, $2, $3, $4, $5::json
+) RETURNING id, user_id, access_token_id, access_expires_at, refresh_token_id, refresh_expires_at, created_at, updated_at, metadata
 `
 
 type StoreTokenParams struct {
+	ID             uuid.UUID       `json:"id"`
 	UserID         uuid.UUID       `json:"user_id"`
 	AccessTokenID  uuid.UUID       `json:"access_token_id"`
 	RefreshTokenID uuid.UUID       `json:"refresh_token_id"`
@@ -140,6 +165,7 @@ type StoreTokenParams struct {
 // Store a token
 func (q *Queries) StoreToken(ctx context.Context, arg StoreTokenParams) error {
 	_, err := q.exec(ctx, q.storeTokenStmt, storeToken,
+		arg.ID,
 		arg.UserID,
 		arg.AccessTokenID,
 		arg.RefreshTokenID,
