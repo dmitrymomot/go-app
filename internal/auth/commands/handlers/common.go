@@ -7,6 +7,7 @@ import (
 
 	"github.com/dmitrymomot/go-app/internal/auth/dto"
 	auth_repository "github.com/dmitrymomot/go-app/internal/auth/repository"
+	"github.com/dmitrymomot/random"
 	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -41,14 +42,53 @@ func getVerificationByID(ctx context.Context, repo auth_repository.TxQuerier, ar
 	if verification.VerificationType != string(arg.Type) {
 		return auth_repository.Verification{}, ErrVerificationInvalidType
 	}
+
 	// Check verification expiration.
 	if verification.ExpiresAt.Before(time.Now()) {
 		return auth_repository.Verification{}, ErrVerificationExpired
 	}
+
 	// Check OTP.
 	if err := bcrypt.CompareHashAndPassword(verification.OtpHash, []byte(arg.OTP)); err != nil {
 		return auth_repository.Verification{}, ErrVerificationInvalidOTP
 	}
 
 	return verification, nil
+}
+
+// generateVerificationParams struct contains parameters for generateVerification function.
+type generateVerificationParams struct {
+	UserID uuid.UUID
+	Email  string
+	Type   dto.VerificationType
+}
+
+// generateAndSendVerification is a helper function that generates OTP for verification and stores it in the database.
+// It also sends an email with OTP to the user.
+// It returns otp or an error if OTP generation or storage fails.
+func generateAndSendVerification(ctx context.Context, repo auth_repository.TxQuerier, sender userEmailVerificationSender, arg generateVerificationParams) error {
+	// Generate OTP hash.
+	otp := random.String(6, random.Numeric)
+	otpHash, err := bcrypt.GenerateFromPassword([]byte(otp), bcrypt.DefaultCost)
+	if err != nil {
+		return ErrFailedToGenerateOTP
+	}
+
+	// Store or update user verification.
+	verificationID, err := repo.StoreOrUpdateVerification(ctx, auth_repository.StoreOrUpdateVerificationParams{
+		UserID:           arg.UserID,
+		VerificationType: string(arg.Type),
+		Email:            arg.Email,
+		OtpHash:          otpHash,
+	})
+	if err != nil {
+		return ErrFailedToStoreVerification
+	}
+
+	// Send auth email.
+	if err := sender.SendEmail(ctx, arg.Email, verificationID, otp); err != nil {
+		return ErrFailedToSendVerificationEmail
+	}
+
+	return nil
 }

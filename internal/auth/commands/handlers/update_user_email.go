@@ -8,8 +8,6 @@ import (
 	"github.com/dmitrymomot/go-app/internal/auth/dto"
 	auth_repository "github.com/dmitrymomot/go-app/internal/auth/repository"
 	"github.com/dmitrymomot/go-utils"
-	"github.com/dmitrymomot/random"
-	"golang.org/x/crypto/bcrypt"
 )
 
 // RequestToUpdateUserEmail is a handler for RequestToUpdateUserEmail command.
@@ -39,27 +37,13 @@ func RequestToUpdateUserEmail(
 			return fmt.Errorf("email is already used")
 		}
 
-		// Generate OTP hash.
-		otp := random.String(6, random.Numeric)
-		otpHash, err := bcrypt.GenerateFromPassword([]byte(otp), bcrypt.DefaultCost)
-		if err != nil {
-			return fmt.Errorf("failed to generate OTP hash: %w", err)
-		}
-
-		// Store or update user verification.
-		verificationID, err := txRepo.StoreOrUpdateVerification(ctx, auth_repository.StoreOrUpdateVerificationParams{
-			UserID:           user.ID,
-			VerificationType: string(dto.VerificationTypeNewEmail),
-			Email:            email,
-			OtpHash:          otpHash,
-		})
-		if err != nil {
-			return fmt.Errorf("failed to store or update verification: %w", err)
-		}
-
-		// Send auth email.
-		if err := sender.SendEmail(ctx, email, verificationID, otp); err != nil {
-			return fmt.Errorf("failed to send update email verification: %w", err)
+		// Send update email verification email.
+		if err := generateAndSendVerification(ctx, txRepo, sender, generateVerificationParams{
+			UserID: user.ID,
+			Type:   dto.VerificationTypeNewEmail,
+			Email:  email,
+		}); err != nil {
+			return fmt.Errorf("failed to generate and send verification: %w", err)
 		}
 
 		if err := txRepo.Commit(); err != nil {

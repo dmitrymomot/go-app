@@ -79,7 +79,7 @@ func TestRequestAuthUser(t *testing.T) {
 		fn := command_handlers.RequestAuthUser(repo, mailSender)
 		err := fn(context.Background(), commands.RequestAuthUser{Email: email})
 		require.Error(t, err)
-		require.EqualError(t, err, fmt.Sprintf("failed to store verification: %s", storeVerificationErr.Error()))
+		require.ErrorIs(t, err, command_handlers.ErrFailedToStoreVerification)
 	})
 
 	t.Run("failed to begin transaction", func(t *testing.T) {
@@ -106,6 +106,6 @@ func TestRequestAuthUser(t *testing.T) {
 		fn := command_handlers.RequestAuthUser(repo, mailSender)
 		err := fn(context.Background(), commands.RequestAuthUser{Email: email})
 		require.Error(t, err)
-		require.EqualError(t, err, fmt.Sprintf("failed to send auth email: %s", sendEmailErr.Error()))
+		require.ErrorIs(t, err, command_handlers.ErrFailedToSendVerificationEmail)
 	})
 }

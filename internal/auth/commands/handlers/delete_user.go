@@ -7,8 +7,6 @@ import (
 	"github.com/dmitrymomot/go-app/internal/auth/commands"
 	"github.com/dmitrymomot/go-app/internal/auth/dto"
 	auth_repository "github.com/dmitrymomot/go-app/internal/auth/repository"
-	"github.com/dmitrymomot/random"
-	"golang.org/x/crypto/bcrypt"
 )
 
 // RequestToDeleteUser is a command handler for deleting user.
@@ -31,27 +29,13 @@ func RequestToDeleteUser(
 			return fmt.Errorf("failed to find user: %w", err)
 		}
 
-		// Generate OTP hash.
-		otp := random.String(6, random.Numeric)
-		otpHash, err := bcrypt.GenerateFromPassword([]byte(otp), bcrypt.DefaultCost)
-		if err != nil {
-			return fmt.Errorf("failed to generate OTP hash: %w", err)
-		}
-
-		// Store or update user verification.
-		verificationID, err := txRepo.StoreOrUpdateVerification(ctx, auth_repository.StoreOrUpdateVerificationParams{
-			UserID:           user.ID,
-			VerificationType: string(dto.VerificationTypeDeleteUser),
-			Email:            user.Email,
-			OtpHash:          otpHash,
-		})
-		if err != nil {
-			return fmt.Errorf("failed to store or update verification: %w", err)
-		}
-
-		// Send email with OTP.
-		if err := sender.SendEmail(ctx, user.Email, verificationID, otp); err != nil {
-			return fmt.Errorf("failed to send email: %w", err)
+		// Send delete user verification email.
+		if err := generateAndSendVerification(ctx, txRepo, sender, generateVerificationParams{
+			UserID: user.ID,
+			Type:   dto.VerificationTypeDeleteUser,
+			Email:  user.Email,
+		}); err != nil {
+			return fmt.Errorf("failed to generate and send verification: %w", err)
 		}
 
 		// Commit transaction.
