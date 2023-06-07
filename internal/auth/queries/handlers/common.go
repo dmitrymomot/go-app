@@ -19,3 +19,8 @@ func castUser(user auth_repository.User) dto.User {
 
 	return result
 }
+
+// generate access & refresh tokens by auth_repository.Token
+func castToken(token auth_repository.Token) dto.Token {
+	return dto.Token{}
+}
