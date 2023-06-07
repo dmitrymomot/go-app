@@ -11,8 +11,9 @@ TODO: Add usage instructions
 Example for auth service repository, replace `auth` with your service name.
 
 ```shell
-mockery --dir=internal/auth/repository \
- --name=TxQuerier --filename=with_tx.go \
- --output=internal/auth/mocks/repository \
- --outpkg=mocks_repository
+mockery \
+    --dir=internal/auth/repository \
+    --name=TxQuerier --filename=with_tx.go \
+    --output=internal/auth/mocks/repository \
+    --outpkg=mocks_repository
 ```
