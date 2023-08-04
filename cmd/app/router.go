@@ -26,6 +26,8 @@ func initRouter() *chi.Mux {
 		middleware.RealIP,
 		middleware.RequestID,
 		middleware.Timeout(httpRequestTimeout),
+		middleware.SetHeader("X-Content-Type-Options", "nosniff"),
+		middleware.SetHeader("X-Frame-Options", "deny"),
 
 		// Basic CORS
 		// for more ideas, see: https://developer.github.com/v3/#cross-origin-resource-sharing
