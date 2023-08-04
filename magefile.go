@@ -5,6 +5,7 @@ package main
 
 import (
 	"fmt"
+	"os"
 	"time"
 
 	"github.com/dmitrymomot/go-env"
@@ -34,7 +35,11 @@ func Run() error {
 // PrepareMigration prepares the database migration
 func PrepareMigration() error {
 	color.Cyan("Preparing database migration...")
-	return sh.RunV("./scripts/prepare-migrations.sh")
+	if err := sh.RunV("./scripts/prepare-migrations.sh"); err != nil {
+		// no need to return error here. It's just a warning.
+		color.Yellow("Failed to prepare database migration: %v", err) // nolint: errcheck
+	}
+	return nil
 }
 
 // MigrateUp runs the database migrations up
@@ -49,8 +54,13 @@ func MigrateUp() error {
 
 // Up runs the application and the database migrations up
 func Up() error {
+	// check if the .env file exists
+	if _, err := os.Stat(".env"); os.IsNotExist(err) {
+		return fmt.Errorf("the .env file does not exist")
+	}
+
 	color.Cyan("Starting the database...")
-	if err := sh.RunV("docker-compose", "-f deployments/docker-compose.yml", "up", "-d"); err != nil {
+	if err := sh.RunV("docker-compose", "-f", "deployments/docker-compose.yml", "up", "-d"); err != nil {
 		return err
 	}
 
@@ -67,5 +77,5 @@ func Up() error {
 // Down stops the application and the database
 func Down() error {
 	color.Yellow("Stopping the database and removing all data...")
-	return sh.RunV("docker-compose", "-f deployments/docker-compose.yml", "down", "--volumes", "--rmi=local")
+	return sh.RunV("docker-compose", "-f", "deployments/docker-compose.yml", "down", "--volumes", "--rmi=local")
 }
